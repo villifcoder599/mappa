@@ -1,0 +1,7 @@
+{
+  "name": "test_mappa",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
