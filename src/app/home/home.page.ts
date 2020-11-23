@@ -12,7 +12,7 @@ import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { Diagnostic } from '@ionic-native/diagnostic/ngx';
 import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 declare var cordova: any;
-
+//test
 /*TODO list:
   
   2)Disabilitare autofocus su nav quando faccio uno swipe sul tel.
