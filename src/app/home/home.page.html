@@ -1,20 +1,25 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
+  
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <div id="myMap" (swipe)="swipeEvent($event)">
+    <div class="bottom_right">
+      <ion-fab-button  (click)="getPosition()"  class="leaflet-control"><ion-icon name="navigate"></ion-icon></ion-fab-button>
+    </div>
+  </div>
+  
+  <div id="controller">
+    <ion-button (click)="up()"><ion-icon name="arrow-up"></ion-icon></ion-button>
+    <ion-button (click)="down()"><ion-icon name="arrow-down"></ion-icon></ion-button><br>
+    <ion-button (click)="left()"><ion-icon name="arrow-back"></ion-icon></ion-button>
+    <ion-button (click)="right()"><ion-icon name="arrow-forward"></ion-icon></ion-button><br>
+    
+    <ion-button (click)="show_alert_foreground()">show_alert_foreground</ion-button><br>
+    <ion-button (click)="test_html()">test html</ion-button><br>
+    <ion-button (click)="requestAccuracy()">test html</ion-button>
+  <button mat-raised-button color="primary" (click)="test_gyroscope()">Test Gyroscope</button><br>
+  <h3>zoom= {{zoom}}</h3><br>
+  <h3>deg={{degrees}}</h3>
   </div>
 </ion-content>
