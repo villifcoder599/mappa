@@ -14,7 +14,6 @@ import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 declare var cordova: any;
 //test
 /*TODO list:
-  
   2)Disabilitare autofocus su nav quando faccio uno swipe sul tel.
   3)Possibilita effetturare rotazione mappa e riallineare con bussola o con navigatore
 */
@@ -67,7 +66,7 @@ export class HomePage {
   }
   test_html() {
     this.alertController.create({
-      message: '<ion-icon name="pin"></ion-icon> Questa app necessita della posizione. \nVuoi abilitare la localizzazione?',
+      message: '<ion-icon name="pin"></ion-icon> Questa app necessita della posizione. \n Vuoi abilitare la localizzazione?',
       cssClass: 'custom_class',
       buttons: [{
         text: 'Annulla'
@@ -114,7 +113,6 @@ export class HomePage {
     this.nativeAudio.play('notification_sound');
       var intervall = setInterval(() => {
         alert.message = msg + time / 1000+'</div></div>';
-        console.log(time);
         if (time == 0) {
           alert.remove();
           clearInterval(intervall);
@@ -158,7 +156,6 @@ export class HomePage {
       fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1])
         .then((response) => response.json())
         .then((json) => {
-          console.log(json);
           if (this.osm_id != json.osm_id) {
             this.osm_id = json.osm_id;
             this.check_street();
@@ -173,24 +170,17 @@ export class HomePage {
       if (find_corsia[0]) {
         if (!this.check_autorizzazione(json.corsie_riservate[find_corsia[1]].tags)) {
           this.show_alert_foreground();
-          console.log("non_autorizzato");
           found = true;
         }
-        else
-          console.log('autorizzato');
-      }
-    });
+      }});
   }
   //confronto strada che sto percorrendo con database corsie_riservate
   find_corsia_riservata(corsie_riservate) {
     var m = 0, l = 0, r = corsie_riservate.length;
     while (l <= r) {
       m = ((l + r) / 2) >> 0; //cancello il resto
-      console.log(m);
-      if (corsie_riservate[m].pk_corsia == this.osm_id) {
-        console.log("found!");
+      if (corsie_riservate[m].pk_corsia == this.osm_id) 
         return [true, m];
-      }
       if (corsie_riservate[m].pk_corsia < this.osm_id)
         l = m + 1;
       else
@@ -202,13 +192,10 @@ export class HomePage {
   //cerco se l'utente ha un autorizzazione per la corsia riservata
   check_autorizzazione(tags = []) {
     var found = false;
-    console.log(this.autoriz_user);
     for (var i = 0; i < this.autoriz_user.length && !found; i++) {
-      console.log(this.autoriz_user[this.tags_name[i]] + " " + tags[this.tags_name[i]]);
       if (this.autoriz_user[this.tags_name[i]] == 1 && tags[this.tags_name[i]] == 1)
         found = true;
     }
-    console.log(found);
     return found;
   }
   //Ruota marker_position in base a dove punta il telefono
