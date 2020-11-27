@@ -11,21 +11,19 @@ import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { Diagnostic } from '@ionic-native/diagnostic/ngx';
 import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
-declare var cordova: any;
-//test
+
 /*TODO list:
+  1)Carcare solo mappa Italia
   2)Disabilitare autofocus su nav quando faccio uno swipe sul tel.
   3)Possibilita effetturare rotazione mappa e riallineare con bussola o con navigatore
 */
-
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
+  selector: 'app-mappa',
+  templateUrl: './mappa.page.html',
+  styleUrls: ['./mappa.page.scss'],
 })
-export class HomePage {
-
-  map;
+export class MappaPage {
+  map=null;
   marker_circle: any;
   marker_position: any;
   latlong: any;
@@ -83,7 +81,7 @@ export class HomePage {
       if (canRequest) {
         // the accuracy option will be ignored by iOS
         this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(() => { },
-          () => { this.location_enable_manually("Non è stato possibile attivare automaticamente la posizione");});
+          () => { this.location_enable_manually("Non è stato possibile attivare automaticamente la posizione"); });
       }
       else { this.location_enable_manually("Richiesta di attivazione localizzazione rifiutata"); }
     });
@@ -103,34 +101,36 @@ export class HomePage {
   }
 
   async show_alert_foreground() {
-    var msg='<div class="msg"> <ion-icon class="alert" name="alert"></ion-icon> Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
+    var msg = '<div class="msg"> <ion-icon class="alert" name="alert"></ion-icon> Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
     var time = 2000;
     var alert = await this.alertController.create({
       cssClass: 'my-custom-class',
-      message: msg+(time+1000)/1000+'</div></div>',
+      message: msg + (time + 1000) / 1000 + '</div></div>',
     });
     alert.present();
     this.nativeAudio.play('notification_sound');
-      var intervall = setInterval(() => {
-        alert.message = msg + time / 1000+'</div></div>';
-        if (time == 0) {
-          alert.remove();
-          clearInterval(intervall);
-        }
-        time = time - 1000;
-      }, 1000);
+    var intervall = setInterval(() => {
+      alert.message = msg + time / 1000 + '</div></div>';
+      if (time == 0) {
+        alert.remove();
+        clearInterval(intervall);
+      }
+      time = time - 1000;
+    }, 1000);
   }
 
   showMap() {
-    this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-      maxZoom: 18,
-      minZoom: 1,
-      id: 'mapbox/streets-v11',
-      tileSize: 512,
-      zoomOffset: -1,
-      accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
-    }).addTo(this.map);
+    if (this.map == null) {
+      this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
+      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        maxZoom: 18,
+        minZoom: 1,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
+      }).addTo(this.map);
+    }
     this.getPosition();
     this.marker_circle.addTo(this.map);
     this.marker_position.addTo(this.map);
@@ -172,14 +172,15 @@ export class HomePage {
           this.show_alert_foreground();
           found = true;
         }
-      }});
+      }
+    });
   }
   //confronto strada che sto percorrendo con database corsie_riservate
   find_corsia_riservata(corsie_riservate) {
     var m = 0, l = 0, r = corsie_riservate.length;
     while (l <= r) {
       m = ((l + r) / 2) >> 0; //cancello il resto
-      if (corsie_riservate[m].pk_corsia == this.osm_id) 
+      if (corsie_riservate[m].pk_corsia == this.osm_id)
         return [true, m];
       if (corsie_riservate[m].pk_corsia < this.osm_id)
         l = m + 1;
