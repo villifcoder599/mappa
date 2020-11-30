@@ -3,23 +3,11 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div id="myMap" (swipe)="swipeEvent($event)">
+  <div id="myMap">
     <div class="bottom_right">
       <ion-fab-button  (click)="getPosition()"  class="leaflet-control"><ion-icon name="navigate"></ion-icon></ion-fab-button>
     </div>
   </div>
   
-  <div id="controller">
-    <ion-button (click)="up()"><ion-icon name="arrow-up"></ion-icon></ion-button>
-    <ion-button (click)="down()"><ion-icon name="arrow-down"></ion-icon></ion-button><br>
-    <ion-button (click)="left()"><ion-icon name="arrow-back"></ion-icon></ion-button>
-    <ion-button (click)="right()"><ion-icon name="arrow-forward"></ion-icon></ion-button><br>
-    
-    <ion-button (click)="show_alert_foreground()">show_alert_foreground</ion-button><br>
-    <ion-button (click)="test_html()">test html</ion-button><br>
-    <ion-button (click)="requestAccuracy()">test html</ion-button>
-  <button mat-raised-button color="primary" (click)="test_gyroscope()">Test Gyroscope</button><br>
-  <h3>zoom= {{zoom}}</h3><br>
-  <h3>deg={{degrees}}</h3>
-  </div>
+  
 </ion-content>

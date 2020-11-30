@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Injectable } from '@angular/core';
 import { Geolocation } from '@ionic-native/geolocation/ngx'
 import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
 import { HttpClient } from '@angular/common/http';
@@ -13,17 +13,24 @@ import { Diagnostic } from '@ionic-native/diagnostic/ngx';
 import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 
 /*TODO list:
-  1)Carcare solo mappa Italia
-  2)Disabilitare autofocus su nav quando faccio uno swipe sul tel.
-  3)Possibilita effetturare rotazione mappa e riallineare con bussola o con navigatore
+  0)Velocizzare app su tel
+  0.1)Audio non funziona
+  0.2)Caricare solo mappa Italia
+  1.1)ionic cordova build ios/android --prod
+  2)inserire notifiche nell tab
+  Prelevare tags da mappe e metterli su details 
+  3)Disabilitare autofocus su nav quando faccio uno swipe sul tel.
+  4)Possibilita effetturare rotazione mappa e riallineare con bussola o con navigatore
 */
 @Component({
   selector: 'app-mappa',
   templateUrl: './mappa.page.html',
   styleUrls: ['./mappa.page.scss'],
 })
+
 export class MappaPage {
-  map=null;
+  init = false;
+  map = null;
   marker_circle: any;
   marker_position: any;
   latlong: any;
@@ -57,24 +64,12 @@ export class MappaPage {
     //2361804077->non autorizzato
   }
   ionViewDidEnter() {
-    this.showMap();
+    if (!this.init) {
+      this.showMap();
+      this.enable_device_orientation();
+    }
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
-    this.enable_device_orientation();
-
-  }
-  test_html() {
-    this.alertController.create({
-      message: '<ion-icon name="pin"></ion-icon> Questa app necessita della posizione. \n Vuoi abilitare la localizzazione?',
-      cssClass: 'custom_class',
-      buttons: [{
-        text: 'Annulla'
-      }, {
-        text: 'Apri impostazioni',
-        handler: () => {
-          this.diagnostic.switchToLocationSettings();
-        }
-      }]
-    }).then((alert) => alert.present());
+    this.init = true;
   }
   requestAccuracy() {
     this.locationAccuracy.canRequest().then((canRequest: boolean) => {
@@ -100,56 +95,59 @@ export class MappaPage {
     }).then((alert) => alert.present());
   }
 
-  async show_alert_foreground() {
+  show_alert_foreground() {
     var msg = '<div class="msg"> <ion-icon class="alert" name="alert"></ion-icon> Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
     var time = 2000;
-    var alert = await this.alertController.create({
+    this.alertController.create({
       cssClass: 'my-custom-class',
       message: msg + (time + 1000) / 1000 + '</div></div>',
+    }).then((alert) => {
+      this.nativeAudio.play('notification_sound');
+      alert.present();
+      var intervall = setInterval(() => {
+        alert.message = msg + time / 1000 + '</div></div>';
+        if (time == 0) {
+          alert.remove();
+          clearInterval(intervall);
+        }
+        time = time - 1000;
+      }, 1000);
     });
-    alert.present();
-    this.nativeAudio.play('notification_sound');
-    var intervall = setInterval(() => {
-      alert.message = msg + time / 1000 + '</div></div>';
-      if (time == 0) {
-        alert.remove();
-        clearInterval(intervall);
-      }
-      time = time - 1000;
-    }, 1000);
   }
-
   showMap() {
-    if (this.map == null) {
-      this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
-      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-        maxZoom: 18,
-        minZoom: 1,
-        id: 'mapbox/streets-v11',
-        tileSize: 512,
-        zoomOffset: -1,
-        accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
-      }).addTo(this.map);
-    }
-    this.getPosition();
+    this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+      maxZoom: 18,
+      minZoom: 1,
+      id: 'mapbox/streets-v11',
+      tileSize: 512,
+      zoomOffset: -1,
+      accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
+    }).addTo(this.map);
+    /*L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);*/ 
+    this.watch_Position();
+    this.reverse_coords();
     this.marker_circle.addTo(this.map);
     this.marker_position.addTo(this.map);
   }
 
-  getPosition() {
+  watch_Position() {
     navigator.geolocation.watchPosition((position => {
+      console.log("click");
       this.latlong = [position.coords.latitude, position.coords.longitude];
       this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
       this.geolocation.getCurrentPosition;
       this.marker_position.setLatLng(this.latlong);
       this.marker_circle.setLatLng(this.latlong);
       this.marker_circle.setRadius(this.accuracy);
-      this.map.setView(this.latlong);
-      this.reverse_coords();
     }), (error => {
       alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
     }), { enableHighAccuracy: true });
-
+  }
+  getPosition(){
+    this.map.setView(this.latlong);
   }
   reverse_coords() {
     setInterval(() => {
@@ -165,12 +163,10 @@ export class MappaPage {
   }
   check_street() {
     fetch("assets/docs/corsie_riservate.gpx").then(res => res.json()).then(json => {
-      var found = false;
       var find_corsia = this.find_corsia_riservata(json.corsie_riservate);
       if (find_corsia[0]) {
         if (!this.check_autorizzazione(json.corsie_riservate[find_corsia[1]].tags)) {
           this.show_alert_foreground();
-          found = true;
         }
       }
     });
@@ -200,7 +196,7 @@ export class MappaPage {
     return found;
   }
   //Ruota marker_position in base a dove punta il telefono
-  enable_device_orientation() {
+  async enable_device_orientation() {
     this.deviceOrientation.watchHeading().subscribe(
       (data: DeviceOrientationCompassHeading) => {
         this.degrees = data.trueHeading;
@@ -211,18 +207,18 @@ export class MappaPage {
   delta = 0.0001;
   up() {
     this.latlong[0] = this.latlong[0] + this.delta;
-    this.getPosition();
+    this.watch_Position();
   }
   down() {
     this.latlong[0] = this.latlong[0] - this.delta;
-    this.getPosition();
+    this.watch_Position();
   }
   left() {
     this.latlong[1] = this.latlong[1] - this.delta;
-    this.getPosition();
+    this.watch_Position();
   }
   right() {
     this.latlong[1] = this.latlong[1] + this.delta;
-    this.getPosition();
+    this.watch_Position();
   }
 }
