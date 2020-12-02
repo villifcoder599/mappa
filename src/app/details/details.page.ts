@@ -1,37 +1,50 @@
-import { Component, OnInit,Injectable } from '@angular/core';
+import { Component, OnInit, Injectable } from '@angular/core';
+import { element } from 'protractor';
 import { MappaPageModule } from '../mappa/mappa.module';
-import{ MappaPage} from '../mappa/mappa.page'
-@Injectable({providedIn:'root'})
+import { MappaPage } from '../mappa/mappa.page'
+import { Storage } from '@ionic/storage'
+@Injectable({ providedIn: 'root' })
 @Component({
   selector: 'app-details',
   templateUrl: './details.page.html',
   styleUrls: ['./details.page.scss'],
 })
 export class DetailsPage {
+  init = false;
+  last_data_user;
+  tags_name = [
+    { id: '', val: 'Bus Urbano', isChecked: false },
+    { id: '', val: 'Bus Extraurbano', isChecked: false },
+    { id: '', val: 'Handicap', isChecked: false },
+    { id: '', val: 'Taxi', isChecked: false },
+    { id: '', val: 'Ncc', isChecked: false },
+    { id: '', val: 'Servizi di polizia e soccorso', isChecked: false },
+    { id: '', val: 'Forze armate', isChecked: false },
+    { id: '', val: 'Mezzi operativi', isChecked: false },
+    { id: '', val: 'Autorizzazioni', isChecked: false },
+    { id: '', val: 'Deroga', isChecked: false },
+    { id: '', val: 'Soccorso', isChecked: false }
+  ];
+  constructor(private mappa: MappaPage, private storage: Storage) {
 
-  tags_name=[];
-  html='<ion-list>'
-  
-  constructor(private mappa:MappaPage) {
-    
-   }
-   ionViewDidEnter(){
-    if(this.tags_name.length==0){
-      console.log("in");
-      for(var i=0;i<this.mappa.tags_name.length;i++)
-        this.tags_name[i]={
-          val:this.mappa.tags_name[i],
-          isChecked:false
-        };
-    }
-    this.tags_name.length=this.mappa.tags_name.length;
-    var div=(document.getElementById('list-box'));
-    div.insertAdjacentHTML('beforebegin',this.html);
-    for(var i=0;i<this.tags_name.length-1;i++){//escudo porta_telematica
-      div.insertAdjacentHTML('beforebegin','<ion-item><ion-label>'+this.tags_name[i].val+'</ion-label><ion-checkbox slot="end" [(ngModel)]="entry.isChecked"></ion-checkbox></ion-item>');
-    }
-    div.insertAdjacentHTML('beforebegin','</ion-list>');
-   }
-  
+  }
+  ionViewDidEnter() {
+    var iterator_name = this.mappa.tags_name;
+    this.last_data_user=JSON.parse(window.localStorage.getItem('autoriz_user'));
+    if(this.last_data_user==null)
+      this.last_data_user=this.mappa.autoriz_user;
+    console.log(this.mappa.autoriz_user);
+    console.log(iterator_name);
+    console.log(this.mappa.accuracy);
+     for (var i = 0; i < iterator_name.length; i++) {
+       this.tags_name[i].isChecked = this.last_data_user[iterator_name[i]] == 0 ? false : true;
+       this.tags_name[i].id = iterator_name[i];
+     }
+  }
+  update_data(event) {
+    this.mappa.set_autoriz_user(event.id, event.isChecked == true ? 1 : 0)
+    console.log(this.mappa.autoriz_user[event.id]);
+    console.log(event);
+  }
 
 }

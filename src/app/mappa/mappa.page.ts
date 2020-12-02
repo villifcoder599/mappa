@@ -4,31 +4,27 @@ import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
 import { HttpClient } from '@angular/common/http';
 import { Platform } from '@ionic/angular';
 import * as L from 'leaflet';
-import 'leaflet-rotatedmarker';
 import { DeviceOrientation, DeviceOrientationCompassHeading } from '@ionic-native/device-orientation/ngx';
 import { AlertController } from '@ionic/angular';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { Diagnostic } from '@ionic-native/diagnostic/ngx';
 import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
-
+/* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
-  0)Velocizzare app su tel
-  0.1)Audio non funziona
-  0.2)Caricare solo mappa Italia
-  1.1)ionic cordova build ios/android --prod
-  2)inserire notifiche nell tab
-  Prelevare tags da mappe e metterli su details 
-  3)Disabilitare autofocus su nav quando faccio uno swipe sul tel.
-  4)Possibilita effetturare rotazione mappa e riallineare con bussola o con navigatore
+  1.1)ionic cordova build android --prod per il problema della velocita dell'app
+  2)inserire lista notifiche nel tab 
+  3)Colorare in base alle autorizzazioni corsie riservate
+  4)Qualche alert e notifiche per personalizzare
+  5)Presentazione
 */
 @Component({
   selector: 'app-mappa',
   templateUrl: './mappa.page.html',
   styleUrls: ['./mappa.page.scss'],
 })
-
 export class MappaPage {
+  focus_on_marker=false;
   init = false;
   map = null;
   marker_circle: any;
@@ -37,9 +33,8 @@ export class MappaPage {
   osm_id = 0;
   accuracy = 20;
   degrees: number;
-  autoriz_user = [];
-  tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso", "porta_telematica"];
-
+  tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso"];
+  autoriz_user = {"bus_urb":0, "bus_extra":0, "hand":0, "taxi":0, "ncc":0, "pol_socc":0, "ff_armate":0, "mezzi_op":0, "autorizz":0, "deroga":0, "soccorso":0};
   constructor(private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private platform: Platform) {
     this.latlong = [43.7996269, 11.2438267];
     this.marker_circle = L.circleMarker(this.latlong, {
@@ -54,22 +49,20 @@ export class MappaPage {
       iconAnchor: [13, 13], // point of the icon which will correspond to marker's location
     });
     this.marker_position = L.marker(this.latlong, { icon: navIcon });
-    this.autoriz_user.length = this.tags_name.length;
-    for (var i = 0; i < this.autoriz_user.length; i++) {
-      this.autoriz_user[this.tags_name[i]] = 0;
-    }
-    this.autoriz_user['hand'] = 1;
     this.osm_id = 2361804077;
     //2361807728->autorizzato
     //2361804077->non autorizzato
   }
   ionViewDidEnter() {
-    if (!this.init) {
-      this.showMap();
+    if (this.map==null) {
+      this.initMap();
       this.enable_device_orientation();
     }
+    this.showMap();
+    this.autoriz_user=JSON.parse(window.localStorage.getItem('autoriz_user'));
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
     this.init = true;
+    console.log(this.autoriz_user);
   }
   requestAccuracy() {
     this.locationAccuracy.canRequest().then((canRequest: boolean) => {
@@ -95,7 +88,7 @@ export class MappaPage {
     }).then((alert) => alert.present());
   }
 
-  show_alert_foreground() {
+  show_alert() {
     var msg = '<div class="msg"> <ion-icon class="alert" name="alert"></ion-icon> Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
     var time = 2000;
     this.alertController.create({
@@ -114,8 +107,8 @@ export class MappaPage {
       }, 1000);
     });
   }
-  showMap() {
-    this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
+  initMap(){
+    this.map = L.map('myMap', { zoomControl: false, attributionControl: false}).setView([this.latlong[0], this.latlong[1]], 17);
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
       maxZoom: 18,
       minZoom: 1,
@@ -124,6 +117,16 @@ export class MappaPage {
       zoomOffset: -1,
       accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
     }).addTo(this.map);
+    this.map.setBearing(30);
+    // this.map.touchZoom.enable();
+    // this.map.dragRotate.enable();
+    // this.map.touchZoomRotate.enable();
+    this.map.on('dragstart',function(){
+      this.focus_on_marker=false;
+      console.log('dragstart'+this.focus_on_marker);
+    })
+  }
+  showMap() {
     /*L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);*/ 
@@ -142,18 +145,23 @@ export class MappaPage {
       this.marker_position.setLatLng(this.latlong);
       this.marker_circle.setLatLng(this.latlong);
       this.marker_circle.setRadius(this.accuracy);
+      console.log(this.latlong);
+      if(this.focus_on_marker)
+        this.map.setView(this.latlong);
     }), (error => {
       alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
     }), { enableHighAccuracy: true });
   }
   getPosition(){
-    this.map.setView(this.latlong);
+    this.map.setView(this.latlong,17);
+    this.focus_on_marker=true;
   }
   reverse_coords() {
     setInterval(() => {
       fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1])
         .then((response) => response.json())
         .then((json) => {
+          console.log(json);
           if (this.osm_id != json.osm_id) {
             this.osm_id = json.osm_id;
             this.check_street();
@@ -166,7 +174,7 @@ export class MappaPage {
       var find_corsia = this.find_corsia_riservata(json.corsie_riservate);
       if (find_corsia[0]) {
         if (!this.check_autorizzazione(json.corsie_riservate[find_corsia[1]].tags)) {
-          this.show_alert_foreground();
+          this.show_alert();
         }
       }
     });
@@ -189,7 +197,7 @@ export class MappaPage {
   //cerco se l'utente ha un autorizzazione per la corsia riservata
   check_autorizzazione(tags = []) {
     var found = false;
-    for (var i = 0; i < this.autoriz_user.length && !found; i++) {
+    for (var i = 0; i < this.tags_name.length && !found; i++) {
       if (this.autoriz_user[this.tags_name[i]] == 1 && tags[this.tags_name[i]] == 1)
         found = true;
     }
@@ -204,21 +212,25 @@ export class MappaPage {
       }
     );
   }
-  delta = 0.0001;
-  up() {
-    this.latlong[0] = this.latlong[0] + this.delta;
-    this.watch_Position();
+  set_autoriz_user(id,value){
+    this.autoriz_user[id]=value;
+    window.localStorage.setItem('autoriz_user',JSON.stringify(this.autoriz_user));
   }
-  down() {
-    this.latlong[0] = this.latlong[0] - this.delta;
-    this.watch_Position();
-  }
-  left() {
-    this.latlong[1] = this.latlong[1] - this.delta;
-    this.watch_Position();
-  }
-  right() {
-    this.latlong[1] = this.latlong[1] + this.delta;
-    this.watch_Position();
-  }
+  // delta = 0.0001;
+  // up() {
+  //   this.latlong[0] = this.latlong[0] + this.delta;
+  //   this.watch_Position();
+  // }
+  // down() {
+  //   this.latlong[0] = this.latlong[0] - this.delta;
+  //   this.watch_Position();
+  // }
+  // left() {
+  //   this.latlong[1] = this.latlong[1] - this.delta;
+  //   this.watch_Position();
+  // }
+  // right() {
+  //   this.latlong[1] = this.latlong[1] + this.delta;
+  //   this.watch_Position();
+  // }
 }

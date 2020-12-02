@@ -14,7 +14,7 @@ import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
 import { MappaPageRoutingModule } from './mappa-routing.module';
 import { MappaPage } from './mappa.page';
-
+import { IonicStorageModule} from '@ionic/storage'
 @NgModule({
   imports: [
     CommonModule,
@@ -22,7 +22,8 @@ import { MappaPage } from './mappa.page';
     IonicModule,
     MappaPageRoutingModule,
     ExploreContainerComponentModule,
-    HttpClientModule
+    HttpClientModule,
+    IonicStorageModule.forRoot()
   ],
   providers:[NativeGeocoder,Geolocation,DeviceOrientation,LocalNotifications,
     AlertController,NativeAudio,Diagnostic,LocationAccuracy],
