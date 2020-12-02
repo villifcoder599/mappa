@@ -10,6 +10,7 @@ import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { Diagnostic } from '@ionic-native/diagnostic/ngx';
 import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
+import { GeoJsonTypes } from 'geojson';
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cordova build android --prod per il problema della velocita dell'app
@@ -117,14 +118,21 @@ export class MappaPage {
       zoomOffset: -1,
       accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
     }).addTo(this.map);
-    this.map.setBearing(30);
-    // this.map.touchZoom.enable();
-    // this.map.dragRotate.enable();
-    // this.map.touchZoomRotate.enable();
     this.map.on('dragstart',function(){
       this.focus_on_marker=false;
       console.log('dragstart'+this.focus_on_marker);
-    })
+    });
+   // var myLayer=L.geoJSON().addTo(this.map);
+    fetch("https://api.maptiler.com/data/0e9323ae-59e6-46dd-a5b0-f8369abaeb9f/features.json?key=6dlZRhPRwAAk8AkJKItk")
+         .then((response)=>response.json()).then((json)=>{
+            console.log(json.features);
+            //myLayer.addData(json.features);
+            L.geoJSON(json, {
+              style: {color: "#ff0000"}
+          }).addTo(this.map);
+    });
+    
+  
   }
   showMap() {
     /*L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

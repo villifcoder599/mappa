@@ -2,7 +2,7 @@ import { Component, OnInit, Injectable } from '@angular/core';
 import { element } from 'protractor';
 import { MappaPageModule } from '../mappa/mappa.module';
 import { MappaPage } from '../mappa/mappa.page'
-import { Storage } from '@ionic/storage'
+
 @Injectable({ providedIn: 'root' })
 @Component({
   selector: 'app-details',
@@ -25,7 +25,7 @@ export class DetailsPage {
     { id: '', val: 'Deroga', isChecked: false },
     { id: '', val: 'Soccorso', isChecked: false }
   ];
-  constructor(private mappa: MappaPage, private storage: Storage) {
+  constructor(private mappa: MappaPage) {
 
   }
   ionViewDidEnter() {
