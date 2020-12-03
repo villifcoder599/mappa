@@ -1,6 +1,4 @@
 import { Component, OnInit, Injectable } from '@angular/core';
-import { element } from 'protractor';
-import { MappaPageModule } from '../mappa/mappa.module';
 import { MappaPage } from '../mappa/mappa.page'
 
 @Injectable({ providedIn: 'root' })

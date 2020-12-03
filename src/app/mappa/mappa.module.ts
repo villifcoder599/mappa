@@ -14,7 +14,8 @@ import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
 import { MappaPageRoutingModule } from './mappa-routing.module';
 import { MappaPage } from './mappa.page';
-
+import { SelectionLineColorPage } from '../selection-line-color/selection-line-color.page';
+import { SelectionLineColorPageRoutingModule} from '../selection-line-color/selection-line-color-routing.module'
 @NgModule({
   imports: [
     CommonModule,
@@ -22,10 +23,11 @@ import { MappaPage } from './mappa.page';
     IonicModule,
     MappaPageRoutingModule,
     ExploreContainerComponentModule,
-    HttpClientModule
+    HttpClientModule,
+    SelectionLineColorPageRoutingModule
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
-    AlertController, NativeAudio, Diagnostic, LocationAccuracy],
+    AlertController, NativeAudio, Diagnostic, LocationAccuracy,SelectionLineColorPage],
   declarations: [MappaPage]
 })
 export class MappaPageModule { }

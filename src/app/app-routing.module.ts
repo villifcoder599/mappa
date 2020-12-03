@@ -10,6 +10,10 @@ const routes: Routes = [
     path: 'details',
     loadChildren: () => import('./details/details.module').then( m => m.DetailsPageModule)
   },
+  {
+    path: 'selection-line-color',
+    loadChildren: () => import('./selection-line-color/selection-line-color.module').then( m => m.SelectionLineColorPageModule)
+  },
 ];
 
 @NgModule({

@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 import { ImpostazioniPageRoutingModule } from './impostazioni-routing.module';
-
 import { ImpostazioniPage } from './impostazioni.page';
 
 

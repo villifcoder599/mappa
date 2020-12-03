@@ -12,7 +12,10 @@ export class ImpostazioniPage implements OnInit {
   ngOnInit() {
     
   }
-  openPage(){
+  open_details_page(){
     this.router.navigate(['details']);
+  }
+  open_select_line_color_page(){
+    this.router.navigate(['selection-line-color']);
   }
 }
