@@ -10,19 +10,19 @@
 <ion-content>
   <ion-item>
     <ion-label>Colore Corsia A</ion-label>
-      <ion-select selectedText="{{color_A.val}}" [(ngModel)]="color_A" (ionChange)="update_color_A()">
+      <ion-select selectedText="{{colors_selected[0].val}}" [(ngModel)]="colors_selected[0]" (ionChange)="update_colors_selected()">
         <ion-select-option *ngFor="let color of colors" [value]="color">{{color.val}}</ion-select-option>
       </ion-select>
   </ion-item>
   <ion-item>
     <ion-label>Colore Corsia B</ion-label>
-      <ion-select selectedText="{{color_B.val}}" [(ngModel)]="color_B" (ionChange)="update_color_B()">
+      <ion-select selectedText="{{colors_selected[1].val}}" [(ngModel)]="colors_selected[1]" (ionChange)="update_colors_selected()">
         <ion-select-option *ngFor="let color of colors" [value]="color">{{color.val}}</ion-select-option>
       </ion-select>
   </ion-item>
   <ion-item>
     <ion-label>Colore Corsia C</ion-label>
-      <ion-select selectedText="{{color_C.val}}" [(ngModel)]="color_C" (ionChange)="update_color_C()">
+      <ion-select selectedText="{{colors_selected[2].val}}" [(ngModel)]="colors_selected[2]" (ionChange)="update_colors_selected()">
         <ion-select-option *ngFor="let color of colors" [value]="color">{{color.val}}</ion-select-option>
       </ion-select>
   </ion-item>
