@@ -11,12 +11,12 @@ import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { Diagnostic } from '@ionic-native/diagnostic/ngx';
 import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 import { SelectionLineColorPage } from '../selection-line-color/selection-line-color.page';
-import { GeoJsonTypes } from 'geojson';
+import { NotificaPage } from '../notifica/notifica.page';
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cordova build android --prod per il problema della velocita dell'app
   2)inserire lista notifiche nel tab 
-  3)Colorare in base alle autorizzazioni corsie riservate
+  3)Colorare in base alle autorizzazioni corsie riservate OK
   4)Qualche alert e notifiche per personalizzare
   5)Presentazione
 */
@@ -38,7 +38,9 @@ export class MappaPage {
   myLine_layer = null;
   tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso"];
   autoriz_user = { "bus_urb": 0, "bus_extra": 0, "hand": 0, "taxi": 0, "ncc": 0, "pol_socc": 0, "ff_armate": 0, "mezzi_op": 0, "autorizz": 0, "deroga": 0, "soccorso": 0 };
-  constructor(private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+  
+
+  constructor(private notifica_page:NotificaPage,private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.latlong = [43.7996269, 11.2438267];
     this.marker_circle = L.circleMarker(this.latlong, {
       radius: this.accuracy,
@@ -53,8 +55,10 @@ export class MappaPage {
     });
     this.marker_position = L.marker(this.latlong, { icon: navIcon });
     this.osm_id = 2361804077;
+
     //2361807728->autorizzato
     //2361804077->non autorizzato
+
   }
   ionViewDidEnter() {
     if (this.map == null) {
@@ -63,6 +67,7 @@ export class MappaPage {
     }
     this.showMap();
     this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
+    this.notifica_page.listaNotifica=JSON.parse(window.localStorage.getItem('listaNotifica'));
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
     this.init = true;
     console.log(this.autoriz_user);
@@ -90,7 +95,6 @@ export class MappaPage {
       }]
     }).then((alert) => alert.present());
   }
-
   show_alert() {
     var msg = '<div class="msg"> <ion-icon class="alert" name="alert"></ion-icon> Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
     var time = 2000;
@@ -110,16 +114,33 @@ export class MappaPage {
       }, 1000);
     });
   }
+  change_visualized_map(){
+
+  }
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-      maxZoom: 18,
-      minZoom: 1,
-      id: 'mapbox/streets-v11',
-      tileSize: 512,
-      zoomOffset: -1,
-      accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
-    }).addTo(this.map);
+    var osm = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
+      mqi = L.tileLayer('https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer');
+
+    var baseMaps = {
+      "OpenStreetMap": osm,
+      "MapQuestImagery": mqi
+    };
+
+    var overlays = {//add any overlays here
+
+    };
+
+    L.control.layers(baseMaps, overlays, { position: 'bottomright' }).addTo(this.map);
+    
+    // L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    //   maxZoom: 21,
+    //   minZoom: 1,
+    //   id: 'mapbox/streets-v11',
+    //   tileSize: 512,
+    //   zoomOffset: -1,
+    //   accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
+    // }).addTo(this.map);
     this.map.on('dragstart', function () {
       this.focus_on_marker = false;
       console.log('dragstart' + this.focus_on_marker);
@@ -169,7 +190,6 @@ export class MappaPage {
     this.marker_circle.addTo(this.map);
     this.marker_position.addTo(this.map);
   }
-
   watch_Position() {
     navigator.geolocation.watchPosition((position => {
       console.log("click");
@@ -179,7 +199,7 @@ export class MappaPage {
       this.marker_position.setLatLng(this.latlong);
       this.marker_circle.setLatLng(this.latlong);
       this.marker_circle.setRadius(this.accuracy);
-      console.log(this.latlong);
+      //console.log(this.latlong);
       if (this.focus_on_marker)
         this.map.setView(this.latlong);
     }), (error => {
@@ -227,7 +247,6 @@ export class MappaPage {
     }
     return false;
   }
-
   //cerco se l'utente ha un autorizzazione per la corsia riservata
   check_autorizzazione(tags = []) {
     var found = false;
@@ -250,21 +269,8 @@ export class MappaPage {
     this.autoriz_user[id] = value;
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
   }
-  // delta = 0.0001;
-  // up() {
-  //   this.latlong[0] = this.latlong[0] + this.delta;
-  //   this.watch_Position();
-  // }
-  // down() {
-  //   this.latlong[0] = this.latlong[0] - this.delta;
-  //   this.watch_Position();
-  // }
-  // left() {
-  //   this.latlong[1] = this.latlong[1] - this.delta;
-  //   this.watch_Position();
-  // }
-  // right() {
-  //   this.latlong[1] = this.latlong[1] + this.delta;
-  //   this.watch_Position();
-  // }
+  notifica(){
+    console.log("send notifica");
+    this.notifica_page.addNotifica('test');
+  }
 }

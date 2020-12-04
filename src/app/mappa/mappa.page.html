@@ -5,9 +5,10 @@
 <ion-content [fullscreen]="true">
   <div id="myMap">
     <div class="bottom_right">
-      <ion-fab-button  (click)="getPosition()"  class="leaflet-control"><ion-icon name="navigate"></ion-icon></ion-fab-button>
+      <ion-fab-button  (click)="getPosition()" class="leaflet-control map-button"><ion-icon name="logo-buffer"></ion-icon></ion-fab-button>
+      <ion-fab-button (click)="getPosition()" class="leaflet-control map-button"><ion-icon name="navigate"></ion-icon></ion-fab-button>
     </div>
   </div>
   <ion-button (click)="show_alert()">Show Alert</ion-button>
-  
+  <ion-button (click)="notifica()">Invia notifica</ion-button>
 </ion-content>

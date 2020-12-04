@@ -15,7 +15,9 @@ import { ExploreContainerComponentModule } from '../explore-container/explore-co
 import { MappaPageRoutingModule } from './mappa-routing.module';
 import { MappaPage } from './mappa.page';
 import { SelectionLineColorPage } from '../selection-line-color/selection-line-color.page';
-import { SelectionLineColorPageRoutingModule} from '../selection-line-color/selection-line-color-routing.module'
+import { SelectionLineColorPageRoutingModule } from '../selection-line-color/selection-line-color-routing.module'
+import { NotificaPage } from '../notifica/notifica.page';
+import { NotificaPageRoutingModule } from '../notifica/notifica-routing.module';
 @NgModule({
   imports: [
     CommonModule,
@@ -24,10 +26,11 @@ import { SelectionLineColorPageRoutingModule} from '../selection-line-color/sele
     MappaPageRoutingModule,
     ExploreContainerComponentModule,
     HttpClientModule,
-    SelectionLineColorPageRoutingModule
+    SelectionLineColorPageRoutingModule,
+    NotificaPageRoutingModule
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
-    AlertController, NativeAudio, Diagnostic, LocationAccuracy,SelectionLineColorPage],
+    AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage],
   declarations: [MappaPage]
 })
 export class MappaPageModule { }
