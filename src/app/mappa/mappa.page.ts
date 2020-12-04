@@ -27,7 +27,6 @@ import { NotificaPage } from '../notifica/notifica.page';
 })
 export class MappaPage {
   focus_on_marker = false;
-  init = false;
   map = null;
   marker_circle: any;
   marker_position: any;
@@ -38,9 +37,9 @@ export class MappaPage {
   myLine_layer = null;
   tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso"];
   autoriz_user = { "bus_urb": 0, "bus_extra": 0, "hand": 0, "taxi": 0, "ncc": 0, "pol_socc": 0, "ff_armate": 0, "mezzi_op": 0, "autorizz": 0, "deroga": 0, "soccorso": 0 };
-  
 
-  constructor(private notifica_page:NotificaPage,private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+
+  constructor(private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.latlong = [43.7996269, 11.2438267];
     this.marker_circle = L.circleMarker(this.latlong, {
       radius: this.accuracy,
@@ -66,10 +65,7 @@ export class MappaPage {
       this.enable_device_orientation();
     }
     this.showMap();
-    this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
-    this.notifica_page.listaNotifica=JSON.parse(window.localStorage.getItem('listaNotifica'));
-    this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
-    this.init = true;
+    this.load_data_from_memory();
     console.log(this.autoriz_user);
   }
   requestAccuracy() {
@@ -114,33 +110,30 @@ export class MappaPage {
       }, 1000);
     });
   }
-  change_visualized_map(){
+  change_visualized_map() {
 
   }
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
-    var osm = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
-      mqi = L.tileLayer('https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer');
+    var osm = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+    var mpb = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+      maxZoom: 21,
+      minZoom: 1,
+      id: 'mapbox/streets-v11',
+      tileSize: 512,
+      zoomOffset: -1,
+      accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
+    }).addTo(this.map);
 
     var baseMaps = {
       "OpenStreetMap": osm,
-      "MapQuestImagery": mqi
+      "Mapbox": mpb
     };
 
-    var overlays = {//add any overlays here
+    // var overlays = {//add any overlays here
+    //     };
 
-    };
-
-    L.control.layers(baseMaps, overlays, { position: 'bottomright' }).addTo(this.map);
-    
-    // L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-    //   maxZoom: 21,
-    //   minZoom: 1,
-    //   id: 'mapbox/streets-v11',
-    //   tileSize: 512,
-    //   zoomOffset: -1,
-    //   accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
-    // }).addTo(this.map);
+    L.control.layers(baseMaps, null, { position: 'bottomright' }).addTo(this.map);
     this.map.on('dragstart', function () {
       this.focus_on_marker = false;
       console.log('dragstart' + this.focus_on_marker);
@@ -150,24 +143,19 @@ export class MappaPage {
 
 
   }
-  showMap() {
-    /*L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);*/
-    var color_A, color_B, color_C;
-    if (window.localStorage.getItem("color_A") != null)
-      color_A = JSON.parse(window.localStorage.getItem('color_A'));
+  load_data_from_memory() {
+    this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
+    this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
+    this.notifica_page.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
+    this.draw_multilines();
+  }
+  draw_multilines() {
+    var colors_selected;
+    if (window.localStorage.getItem("colors_selected") != null)
+      colors_selected = JSON.parse(window.localStorage.getItem('colors_selected'));
     else
-      color_A = this.sel_line_color_page.color_A;
-    if (window.localStorage.getItem("color_B") != null)
-      color_B = JSON.parse(window.localStorage.getItem('color_B'));
-    else
-      color_B = this.sel_line_color_page.color_B;
-    if (window.localStorage.getItem("color_C") != null)
-      color_C = JSON.parse(window.localStorage.getItem('color_C'));
-    else
-      color_C = this.sel_line_color_page.color_C;
-    console.log(color_A.val + "\n" + color_B.val + "\n" + color_C.val);
+      colors_selected = this.sel_line_color_page.colors_selected;
+    console.log(colors_selected);
 
     fetch("assets/docs/geoJSON_corsie.geojson")
       .then((response) => response.json()).then((json) => {
@@ -178,13 +166,18 @@ export class MappaPage {
         this.myLine_layer = L.geoJSON(json, {
           style: function () {
             switch (json.features[count++].properties.name.tipo) {
-              case 'A': return { color: color_A.coding, opacity: opacity_value };
-              case 'B': return { color: color_B.coding, opacity: opacity_value };
-              case 'C': return { color: color_C.coding, opacity: opacity_value, };
+              case 'A': return { color: colors_selected[0].coding, opacity: opacity_value };
+              case 'B': return { color: colors_selected[1].coding, opacity: opacity_value };
+              case 'C': return { color: colors_selected[2].coding, opacity: opacity_value };
             }
           }
         }).addTo(this.map);
       });
+  }
+  showMap() {
+    /*L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);*/
     this.watch_Position();
     this.reverse_coords();
     this.marker_circle.addTo(this.map);
@@ -269,7 +262,7 @@ export class MappaPage {
     this.autoriz_user[id] = value;
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
   }
-  notifica(){
+  notifica() {
     console.log("send notifica");
     this.notifica_page.addNotifica('test');
   }
