@@ -27,6 +27,13 @@ import { NotificaPage } from '../notifica/notifica.page';
   styleUrls: ['./mappa.page.scss'],
 })
 export class MappaPage {
+  icon_map_view_selected = [{
+    name: "globe"
+  }, {
+    name: "logo-buffer"
+  }, {
+    name: "map"
+  }];
   count_map_view_selected = 0;
   focus_on_marker = false;
   map = null;
@@ -40,6 +47,10 @@ export class MappaPage {
   tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso"];
   autoriz_user = { "bus_urb": 0, "bus_extra": 0, "hand": 0, "taxi": 0, "ncc": 0, "pol_socc": 0, "ff_armate": 0, "mezzi_op": 0, "autorizz": 0, "deroga": 0, "soccorso": 0 };
   actual_layer = [];
+  state_button_arrow = {
+    color: "light",
+    state: false
+  };
   baseMaps = [{
     id: "mapBox",
     layer: [('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}')],
@@ -73,6 +84,7 @@ export class MappaPage {
   }];
 
   constructor(private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+    console.log(this.state_button_arrow);
     this.latlong = [43.7996269, 11.2438267];
     this.marker_circle = L.circleMarker(this.latlong, {
       radius: this.accuracy,
@@ -92,11 +104,25 @@ export class MappaPage {
     //2361804077->non autorizzato
 
   }
+  change_arrow_color() {
+    console.log(this.state_button_arrow);
+    switch (this.state_button_arrow.color) {
+      case "light": {
+        this.state_button_arrow.color = "dark";
+        this.state_button_arrow.state = true
+      }; break;
+      case "dark": {
+        this.state_button_arrow.color = "light";
+        this.state_button_arrow.state = false
+      }; break;
+    }
+  }
   ionViewDidEnter() {
     if (this.map == null) {
       this.initMap();
       this.enable_device_orientation();
     }
+    console.log(this.count_map_view_selected);
     this.showMap();
     this.load_data_from_memory();
     console.log(this.autoriz_user);
@@ -146,20 +172,23 @@ export class MappaPage {
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
     // L.control.layers(this.baseMaps, null, { position: 'bottomright' }).addTo(this.map);
-    this.map.on('dragstart',function () {
-      this.focus_on_marker=false;
-      console.log("dragstart");
-    })
-    this.map.on('dragend', function (event) {
-      console.log(event);
-      if(event.distance<100)
-        this.focus_on_marker = true;
-      console.log('dragend' + this.focus_on_marker);
+    this.map.on('dragstart', function () {
+      this.focus_on_marker = false;
+      console.log(this.focus_on_marker);
     });
+    this.map.on('dragend', (event) => this.drag_end_event(event));
     // var myLayer=L.geoJSON().addTo(this.map);
-
-
-
+  }
+  drag_end_event(event) {
+    console.log(event);
+    if (event.distance > 80 && this.state_button_arrow.state) {
+      this.focus_on_marker = true;
+      this.change_arrow_color();
+      console.log(this.state_button_arrow);
+    }
+    if(this.state_button_arrow.state){
+      this.map.setView(this.latlong);
+    }
   }
   load_data_from_memory() {
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
@@ -203,13 +232,16 @@ export class MappaPage {
         this.map.removeLayer(element);
       }
       )
+      this.count_map_view_selected = (this.count_map_view_selected + 1) % this.baseMaps.length; //in this pos. to syncro icon_map_viw and basemap
     }
-    this.count_map_view_selected=(this.count_map_view_selected+1)%this.baseMaps.length;
+    console.log(this.count_map_view_selected);
     var count = 0;
     this.baseMaps[this.count_map_view_selected].layer.forEach(element => {
-      console.log(element);
+      // console.log(element);
       this.actual_layer[count++] = L.tileLayer(element, this.baseMaps[this.count_map_view_selected].options).addTo(this.map);
     });
+
+    console.log(this.count_map_view_selected);
     //this.actual_layer=L.tileLayer(this.baseMaps[1].layer.toString(),this.baseMaps[1].options).addTo(this.map);
 
     // });
@@ -248,7 +280,8 @@ export class MappaPage {
     }), { enableHighAccuracy: true });
   }
   getPosition() {
-    this.map.setView(this.latlong, this.map.getZoom()<16?19:this.map.getZoom());
+    this.change_arrow_color();
+    this.map.setView(this.latlong, this.map.getZoom() < 16 ? 19 : this.map.getZoom());
     this.focus_on_marker = true;
   }
   async reverse_coords() {
