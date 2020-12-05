@@ -18,6 +18,7 @@ import { NotificaPage } from '../notifica/notifica.page';
   2)inserire lista notifiche nel tab 
   3)Colorare in base alle autorizzazioni corsie riservate OK
   4)Qualche alert e notifiche per personalizzare
+  4.1)Fix dragStart dragEnd
   5)Presentazione
 */
 @Component({
@@ -26,6 +27,7 @@ import { NotificaPage } from '../notifica/notifica.page';
   styleUrls: ['./mappa.page.scss'],
 })
 export class MappaPage {
+  count_map_view_selected = 0;
   focus_on_marker = false;
   map = null;
   marker_circle: any;
@@ -37,7 +39,38 @@ export class MappaPage {
   myLine_layer = null;
   tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso"];
   autoriz_user = { "bus_urb": 0, "bus_extra": 0, "hand": 0, "taxi": 0, "ncc": 0, "pol_socc": 0, "ff_armate": 0, "mezzi_op": 0, "autorizz": 0, "deroga": 0, "soccorso": 0 };
-
+  actual_layer = [];
+  baseMaps = [{
+    id: "mapBox",
+    layer: [('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}')],
+    options: {
+      maxZoom: 20,
+      minZoom: 1,
+      id: 'mapbox/streets-v11',
+      tileSize: 512,
+      zoomOffset: -1,
+      accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
+    },
+  }, {
+    id: "hybrid",
+    layer: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 'https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png'],
+    options: {
+      maxZoom: 20,
+      minZoom: 1,
+      tileSize: 512,
+      zoomOffset: -1,
+    }
+  }, {
+    id: "streetMap",
+    layer: [("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")],
+    options: {
+      maxZoom: 20,
+      minZoom: 1,
+      tileSize: 512,
+      zoomOffset: -1,
+      accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
+    }
+  }];
 
   constructor(private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.latlong = [43.7996269, 11.2438267];
@@ -110,33 +143,18 @@ export class MappaPage {
       }, 1000);
     });
   }
-  change_visualized_map() {
-
-  }
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
-    var osm = L.tileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
-    var mpb = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-      maxZoom: 21,
-      minZoom: 1,
-      id: 'mapbox/streets-v11',
-      tileSize: 512,
-      zoomOffset: -1,
-      accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
-    }).addTo(this.map);
-
-    var baseMaps = {
-      "OpenStreetMap": osm,
-      "Mapbox": mpb
-    };
-
-    // var overlays = {//add any overlays here
-    //     };
-
-    L.control.layers(baseMaps, null, { position: 'bottomright' }).addTo(this.map);
-    this.map.on('dragstart', function () {
-      this.focus_on_marker = false;
-      console.log('dragstart' + this.focus_on_marker);
+    // L.control.layers(this.baseMaps, null, { position: 'bottomright' }).addTo(this.map);
+    this.map.on('dragstart',function () {
+      this.focus_on_marker=false;
+      console.log("dragstart");
+    })
+    this.map.on('dragend', function (event) {
+      console.log(event);
+      if(event.distance<100)
+        this.focus_on_marker = true;
+      console.log('dragend' + this.focus_on_marker);
     });
     // var myLayer=L.geoJSON().addTo(this.map);
 
@@ -174,10 +192,40 @@ export class MappaPage {
         }).addTo(this.map);
       });
   }
+  countLayers() {
+    let i = 0;
+    this.map.eachLayer(function () { i += 1; });
+    console.log('Map has ', i, 'layers.');
+  }
+  change_view_map() {
+    if (this.actual_layer.length != 0) {
+      this.actual_layer.forEach(element => {
+        this.map.removeLayer(element);
+      }
+      )
+    }
+    this.count_map_view_selected=(this.count_map_view_selected+1)%this.baseMaps.length;
+    var count = 0;
+    this.baseMaps[this.count_map_view_selected].layer.forEach(element => {
+      console.log(element);
+      this.actual_layer[count++] = L.tileLayer(element, this.baseMaps[this.count_map_view_selected].options).addTo(this.map);
+    });
+    //this.actual_layer=L.tileLayer(this.baseMaps[1].layer.toString(),this.baseMaps[1].options).addTo(this.map);
+
+    // });
+    // this.count_map_view_selected=(this.count_map_view_selected+1)%3;
+    // this.actual_layer=this.baseMaps[this.count_map_view_selected];
+    //this.actual_layer=L.layerGroup(this.baseMaps[1].layer,this.baseMaps[this.count_map_view_selected].options).addTo(this.map);
+    //this.baseMaps[this.count_map_view_selected].layer.forEach(element => {
+    //  this.actual_layer=L.layerGroup(element,this.baseMaps[this.count_map_view_selected].options).addTo(this.map);
+    //});
+
+  }
   showMap() {
     /*L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);*/
+    this.change_view_map();
     this.watch_Position();
     this.reverse_coords();
     this.marker_circle.addTo(this.map);
@@ -200,7 +248,7 @@ export class MappaPage {
     }), { enableHighAccuracy: true });
   }
   getPosition() {
-    this.map.setView(this.latlong, 17);
+    this.map.setView(this.latlong, this.map.getZoom()<16?19:this.map.getZoom());
     this.focus_on_marker = true;
   }
   async reverse_coords() {
