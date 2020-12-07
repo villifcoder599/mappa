@@ -1,4 +1,5 @@
-import { Component, Injectable } from '@angular/core';
+import { Component, Injectable, ViewChild } from '@angular/core';
+import { IonList } from '@ionic/angular';
 
 @Component({
   selector: 'app-notifica',
@@ -6,6 +7,8 @@ import { Component, Injectable } from '@angular/core';
   styleUrls: ['./notifica.page.scss'],
 })
 export class NotificaPage {
+  @ViewChild('listone') lista: IonList;
+
   listaNotifica = [];
   constructor() {
     console.log("costruttore");
@@ -32,5 +35,13 @@ export class NotificaPage {
     this.listaNotifica=[];
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
     console.log("rimosse"+this.listaNotifica);
+  }
+  deleteItem(i){
+    this.lista.closeSlidingItems();
+    console.log(i);
+    this.listaNotifica.splice(i,1);
+    window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
+    console.log("rimosse"+this.listaNotifica);
+
   }
 }
