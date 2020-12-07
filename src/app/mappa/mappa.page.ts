@@ -28,6 +28,8 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
   styleUrls: ['./mappa.page.scss'],
 })
 export class MappaPage {
+  colors_selected;
+  legend;
   icon_map_view_selected = [{
     name: "globe"
   }, {
@@ -85,7 +87,7 @@ export class MappaPage {
     }
   }];
 
-  constructor(private custom_alert_page:CustomAlertPage,private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+  constructor(private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     console.log(this.state_button_arrow);
     this.latlong = [43.7996269, 11.2438267];
     this.marker_circle = L.circleMarker(this.latlong, {
@@ -119,10 +121,28 @@ export class MappaPage {
       }; break;
     }
   }
+  create_legend() {
+    if(this.legend==null)
+      this.legend = new L.Control({ position: 'topright' });
+    else
+      this.map.removeControl(this.legend);
+      this.legend.onAdd=(() => {
+      var div = L.DomUtil.create('div', 'info legend');
+      // loop through our density intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < this.colors_selected.length; i++) {
+        div.innerHTML +=
+          '<div class="row"> <i class ="color" style="background:' + this.colors_selected[i].coding + '"></i> ' +'<p id="testo">'+
+          'corsia '+this.colors_selected[i].corsia+' </p></div>';
+      }
+      return div;
+    })
+    this.legend.addTo(this.map);
+  }
   ionViewDidEnter() {
     if (this.map == null) {
       this.initMap();
       this.enable_device_orientation();
+      // this.getPosition();
     }
     console.log(this.count_map_view_selected);
     this.showMap();
@@ -154,10 +174,10 @@ export class MappaPage {
   }
   show_alert() {
     console.log(this.custom_alert);
-    var div = '<div class='+this.custom_alert.div_class+'>';
-    var icon='<ion-icon name='+this.custom_alert.ion_icon_name+ ' class='+this.custom_alert.ion_icon_class+'></ion-icon>';
-    var txt='Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
-    var msg=this.custom_alert.ion_icon_name==''?msg=div+txt:msg=div+icon+txt;
+    var div = '<div class=' + this.custom_alert.div_class + '>';
+    var icon = '<ion-icon name=' + this.custom_alert.ion_icon_name + ' class=' + this.custom_alert.ion_icon_class + '></ion-icon>';
+    var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
+    var msg = this.custom_alert.ion_icon_name == '' ? msg = div + txt : msg = div + icon + txt;
     console.log(msg);
     var time = 2000;
     this.alertController.create({
@@ -166,19 +186,19 @@ export class MappaPage {
     }).then((alert) => {
       this.nativeAudio.play('notification_sound');
       alert.present();
-       var intervall = setInterval(() => {
-         alert.message = msg + time / 1000 + '</div></div>';
-         if (time == 0) {
-           alert.remove();
-           clearInterval(intervall);
-         }
-         time = time - 1000;
-       }, 1000);
+      var intervall = setInterval(() => {
+        alert.message = msg + time / 1000 + '</div></div>';
+        if (time == 0) {
+          alert.remove();
+          clearInterval(intervall);
+        }
+        time = time - 1000;
+      }, 1000);
     });
   }
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
-    // L.control.layers(this.baseMaps, null, { position: 'bottomright' }).addTo(this.map);
+    this.go_next_map_view();
     this.map.on('dragstart', function () {
       this.focus_on_marker = false;
       console.log(this.focus_on_marker);
@@ -193,7 +213,7 @@ export class MappaPage {
       this.change_arrow_color();
       console.log(this.state_button_arrow);
     }
-    if(this.state_button_arrow.state){
+    if (this.state_button_arrow.state) {
       this.map.setView(this.latlong);
     }
   }
@@ -201,31 +221,31 @@ export class MappaPage {
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
     this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
     this.notifica_page.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
-    this.custom_alert=JSON.parse(window.localStorage.getItem('selected_radio'));
-    if(this.custom_alert==null)
-      this.custom_alert=this.custom_alert_page.selected_radio;
+    this.custom_alert = JSON.parse(window.localStorage.getItem('selected_radio'));
+    if (window.localStorage.getItem("colors_selected") != null)
+      this.colors_selected = JSON.parse(window.localStorage.getItem('colors_selected'));
+    else
+      this.colors_selected = this.sel_line_color_page.colors_selected;
+    if (this.custom_alert == null)
+      this.custom_alert = this.custom_alert_page.selected_radio;
     this.draw_multilines();
   }
   draw_multilines() {
-    var colors_selected;
-    if (window.localStorage.getItem("colors_selected") != null)
-      colors_selected = JSON.parse(window.localStorage.getItem('colors_selected'));
-    else
-      colors_selected = this.sel_line_color_page.colors_selected;
-    console.log(colors_selected);
+    console.log(this.colors_selected);
 
     fetch("assets/docs/geoJSON_corsie.geojson")
       .then((response) => response.json()).then((json) => {
+        console.log(this.colors_selected);
         var count = 0;
         var opacity_value = 0.7;
         if (this.myLine_layer != null) //remove old layer
           this.map.removeLayer(this.myLine_layer);
         this.myLine_layer = L.geoJSON(json, {
-          style: function () {
+          style: () => {
             switch (json.features[count++].properties.name.tipo) {
-              case 'A': return { color: colors_selected[0].coding, opacity: opacity_value };
-              case 'B': return { color: colors_selected[1].coding, opacity: opacity_value };
-              case 'C': return { color: colors_selected[2].coding, opacity: opacity_value };
+              case 'A': return { color: this.colors_selected[0].coding, opacity: opacity_value };
+              case 'B': return { color: this.colors_selected[1].coding, opacity: opacity_value };
+              case 'C': return { color: this.colors_selected[2].coding, opacity: opacity_value };
             }
           }
         }).addTo(this.map);
@@ -245,29 +265,21 @@ export class MappaPage {
       this.count_map_view_selected = (this.count_map_view_selected + 1) % this.baseMaps.length; //in this pos. to syncro icon_map_viw and basemap
     }
     console.log(this.count_map_view_selected);
+    this.go_next_map_view();
+    console.log(this.count_map_view_selected);
+  }
+  go_next_map_view() {
     var count = 0;
     this.baseMaps[this.count_map_view_selected].layer.forEach(element => {
       // console.log(element);
       this.actual_layer[count++] = L.tileLayer(element, this.baseMaps[this.count_map_view_selected].options).addTo(this.map);
     });
-
-    console.log(this.count_map_view_selected);
-    //this.actual_layer=L.tileLayer(this.baseMaps[1].layer.toString(),this.baseMaps[1].options).addTo(this.map);
-
-    // });
-    // this.count_map_view_selected=(this.count_map_view_selected+1)%3;
-    // this.actual_layer=this.baseMaps[this.count_map_view_selected];
-    //this.actual_layer=L.layerGroup(this.baseMaps[1].layer,this.baseMaps[this.count_map_view_selected].options).addTo(this.map);
-    //this.baseMaps[this.count_map_view_selected].layer.forEach(element => {
-    //  this.actual_layer=L.layerGroup(element,this.baseMaps[this.count_map_view_selected].options).addTo(this.map);
-    //});
-
   }
   showMap() {
     /*L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);*/
-    this.change_view_map();
+    //this.change_view_map();
     this.watch_Position();
     this.reverse_coords();
     this.marker_circle.addTo(this.map);
@@ -353,9 +365,9 @@ export class MappaPage {
     this.autoriz_user[id] = value;
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
   }
-  count=0;
+  count = 0;
   notifica() {
     console.log("send notifica");
-    this.notifica_page.addNotifica('test'+this.count++);
+    this.notifica_page.addNotifica('test' + this.count++);
   }
 }
