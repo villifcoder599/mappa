@@ -14,6 +14,10 @@ const routes: Routes = [
     path: 'selection-line-color',
     loadChildren: () => import('./selection-line-color/selection-line-color.module').then( m => m.SelectionLineColorPageModule)
   },
+  {
+    path: 'custom-alert',
+    loadChildren: () => import('./custom-alert/custom-alert.module').then( m => m.CustomAlertPageModule)
+  },
 ];
 
 @NgModule({

@@ -12,9 +12,10 @@ import { Diagnostic } from '@ionic-native/diagnostic/ngx';
 import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 import { SelectionLineColorPage } from '../selection-line-color/selection-line-color.page';
 import { NotificaPage } from '../notifica/notifica.page';
+import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
-  1.1)ionic cordova build android --prod per il problema della velocita dell'app
+  1.1)ionic cap build android --prod per il problema della velocita dell'app
   2)inserire lista notifiche nel tab 
   3)Colorare in base alle autorizzazioni corsie riservate OK
   4)Qualche alert e notifiche per personalizzare
@@ -44,6 +45,7 @@ export class MappaPage {
   accuracy = 20;
   degrees: number;
   myLine_layer = null;
+  custom_alert;
   tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso"];
   autoriz_user = { "bus_urb": 0, "bus_extra": 0, "hand": 0, "taxi": 0, "ncc": 0, "pol_socc": 0, "ff_armate": 0, "mezzi_op": 0, "autorizz": 0, "deroga": 0, "soccorso": 0 };
   actual_layer = [];
@@ -83,7 +85,7 @@ export class MappaPage {
     }
   }];
 
-  constructor(private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+  constructor(private custom_alert_page:CustomAlertPage,private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     console.log(this.state_button_arrow);
     this.latlong = [43.7996269, 11.2438267];
     this.marker_circle = L.circleMarker(this.latlong, {
@@ -151,22 +153,27 @@ export class MappaPage {
     }).then((alert) => alert.present());
   }
   show_alert() {
-    var msg = '<div class="msg"> <ion-icon class="alert" name="alert"></ion-icon> Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
+    console.log(this.custom_alert);
+    var div = '<div class='+this.custom_alert.div_class+'>';
+    var icon='<ion-icon name='+this.custom_alert.ion_icon_name+ ' class='+this.custom_alert.ion_icon_class+'></ion-icon>';
+    var txt='Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
+    var msg=this.custom_alert.ion_icon_name==''?msg=div+txt:msg=div+icon+txt;
+    console.log(msg);
     var time = 2000;
     this.alertController.create({
-      cssClass: 'my-custom-class',
+      cssClass: this.custom_alert.css_class,
       message: msg + (time + 1000) / 1000 + '</div></div>',
     }).then((alert) => {
       this.nativeAudio.play('notification_sound');
       alert.present();
-      var intervall = setInterval(() => {
-        alert.message = msg + time / 1000 + '</div></div>';
-        if (time == 0) {
-          alert.remove();
-          clearInterval(intervall);
-        }
-        time = time - 1000;
-      }, 1000);
+       var intervall = setInterval(() => {
+         alert.message = msg + time / 1000 + '</div></div>';
+         if (time == 0) {
+           alert.remove();
+           clearInterval(intervall);
+         }
+         time = time - 1000;
+       }, 1000);
     });
   }
   initMap() {
@@ -194,6 +201,9 @@ export class MappaPage {
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
     this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
     this.notifica_page.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
+    this.custom_alert=JSON.parse(window.localStorage.getItem('selected_radio'));
+    if(this.custom_alert==null)
+      this.custom_alert=this.custom_alert_page.selected_radio;
     this.draw_multilines();
   }
   draw_multilines() {
@@ -343,8 +353,9 @@ export class MappaPage {
     this.autoriz_user[id] = value;
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
   }
+  count=0;
   notifica() {
     console.log("send notifica");
-    this.notifica_page.addNotifica('test');
+    this.notifica_page.addNotifica('test'+this.count++);
   }
 }

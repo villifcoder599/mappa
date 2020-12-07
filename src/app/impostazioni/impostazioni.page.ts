@@ -18,4 +18,7 @@ export class ImpostazioniPage implements OnInit {
   open_select_line_color_page(){
     this.router.navigate(['selection-line-color']);
   }
+  open_custom_alert_page(){
+    this.router.navigate(['custom-alert']);
+  }
 }

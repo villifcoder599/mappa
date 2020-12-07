@@ -1,0 +1,19 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Scelta alert</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-radio-group (ionChange)="radioGroupChange($event)" value="{{default_selected_radio.name}}">
+      <ion-item *ngFor="let entry of list_alert">
+        <ion-label>{{entry.name}}</ion-label>
+        <ion-radio slot="end" [value]="entry"></ion-radio>
+      </ion-item>
+    </ion-radio-group>
+  </ion-list>
+</ion-content>
