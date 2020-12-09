@@ -9,26 +9,26 @@ export class CustomAlertPage {
   @ViewChild('radio_gruppo') radio_group: IonRadioGroup;
   list_alert = [{
     id: 0,
-    name: 'Divieto_accesso',
-    css_class: 'rounded-red-class',
-    div_class: 'msg',
-    ion_icon_class: 'alert',
-    ion_icon_name: 'alert'
+    name: 'Default',
+    css_class: '',
+    div_class: 'msg_custom',
+    ion_icon_class: '',
+    ion_icon_name: ''
 
   }, {
     id: 1,
-    name: 'Default',
-    css_class: '',
-    div_class: '',
-    ion_icon_class: '',
-    ion_icon_name: ''
+    name: 'Divieto accesso',
+    css_class: 'container',
+    div_class: "text "+'msg_custom',
+    ion_icon_class: 'alert',
+    ion_icon_name: 'alert'
   }, {
     id: 2,
-    name: 'test3',
-    css_class: '',
-    div_class: '',
-    ion_icon_class: '',
-    ion_icon_name: ''
+    name: 'Arcobaleno',
+    css_class: 'rounded-2-class',
+    div_class: 'msg_custom',
+    ion_icon_class: 'alert',
+    ion_icon_name: 'alert'
   }];
   selected_radio = this.list_alert[0];
   constructor() {

@@ -28,18 +28,49 @@
 //     font:500 20px/32px Roboto, "Helvetica Neue", sans-serif;
 //     color:#000000;
 // }
-.rounded-red-class .alert-message .alert{
+.alert{
     font-size: 85px;
     color:#ff0000;
 }
 #alert-1-msg{
     text-align: center;
+    padding:0;
 }
+#alert-2-msg{
+    padding: 0;
+}
+.rounded-2-class .alert-wrapper.sc-ion-alert-md{
+    border: 15px solid #488AFF; 
+    width: 0;
+}
+
 .rounded-red-class .alert-wrapper.sc-ion-alert-md{
     border-radius: 100%;
     border:15px solid #ff0000;
+
 }
-.rounded-red-class .msg{
+.container .alert-wrapper.sc-ion-alert-md{
+    border:15px solid #ff0000;
+   position: relative;
+   width: 100%;
+   padding-top: 18.3%; /* 8:5 Aspect Ratio */
+   border-radius:100%
+}
+.container .alert-head{
+    padding:0;
+}
+.container .alert-button-group{
+    padding: 0;
+}
+.text{
+   position:  absolute;
+   top: 36px;
+   left: 0;
+   bottom: 0;
+   right: 0;
+   text-align: center;
+}
+.msg_custom{
     font: 500 18px Roboto, "Helvetica Neue", sans-serif;
     color: #000;
     display: flex;
@@ -47,7 +78,7 @@
     text-align: center;
     align-items: center;
 }
-.rounded-red-class .msg .sub_msg{
+.msg_custom .sub_msg{
     font-weight: 150;
 }
 #ion-fab-button .map-button{
