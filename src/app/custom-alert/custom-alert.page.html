@@ -9,7 +9,7 @@
 
 <ion-content>
   <ion-list>
-    <ion-radio-group (ionChange)="radioGroupChange($event)" value="{{selected_radio.name}}">
+    <ion-radio-group (ionChange)="radioGroupChange($event)" #radio_gruppo>
       <ion-item *ngFor="let entry of list_alert">
         <ion-label>{{entry.name}}</ion-label>
         <ion-radio slot="end" [value]="entry"></ion-radio>
