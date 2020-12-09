@@ -16,10 +16,15 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cap build android --prod per il problema della velocita dell'app
-  2)inserire lista notifiche nel tab 
   3)Colorare in base alle autorizzazioni corsie riservate OK
   4)Qualche alert e notifiche per personalizzare
   4.1)Fix dragStart dragEnd
+  4.2)Mettere checbox vista_legenda in personalizza colore corsie
+  4.3)Radio button da correggere (se clicco fuori dal radio non arriva l'input) e non seleziona alert salvato
+  4.4)Legenda troppo attaccata alla status bar
+  4.5)alert divieto ovale su smartphone (provare min e max height/width)
+  4.6)Mettere l'invia notifica nel codice al posto giusto
+  4.7)Perfezionare requestAccuracy nel getPosition()
   5)Presentazione
 */
 @Component({
@@ -122,17 +127,17 @@ export class MappaPage {
     }
   }
   create_legend() {
-    if(this.legend==null)
+    if (this.legend == null)
       this.legend = new L.Control({ position: 'topright' });
     else
       this.map.removeControl(this.legend);
-      this.legend.onAdd=(() => {
+    this.legend.onAdd = (() => {
       var div = L.DomUtil.create('div', 'info legend');
       // loop through our density intervals and generate a label with a colored square for each interval
       for (var i = 0; i < this.colors_selected.length; i++) {
         div.innerHTML +=
-          '<div class="row"> <i class ="color" style="background:' + this.colors_selected[i].coding + '"></i> ' +'<p id="testo">'+
-          'corsia '+this.colors_selected[i].corsia+' </p></div>';
+          '<div class="row"> <i class ="color" style="background:' + this.colors_selected[i].coding + '"></i> ' + '<p id="testo">' +
+          'corsia ' + this.colors_selected[i].corsia + ' </p></div>';
       }
       return div;
     })
@@ -150,14 +155,15 @@ export class MappaPage {
     console.log(this.autoriz_user);
   }
   requestAccuracy() {
+    var ok=true;
     this.locationAccuracy.canRequest().then((canRequest: boolean) => {
       if (canRequest) {
         // the accuracy option will be ignored by iOS
-        this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(() => { },
-          () => { this.location_enable_manually("Non è stato possibile attivare automaticamente la posizione"); });
+        this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(()=>{},()=>ok=false);
       }
       else { this.location_enable_manually("Richiesta di attivazione localizzazione rifiutata"); }
     });
+    return ok;
   }
   location_enable_manually(message) {
     this.alertController.create({
@@ -286,8 +292,8 @@ export class MappaPage {
     this.marker_position.addTo(this.map);
   }
   watch_Position() {
+    this.requestAccuracy();
     navigator.geolocation.watchPosition((position => {
-      console.log("click");
       this.latlong = [position.coords.latitude, position.coords.longitude];
       this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
       this.geolocation.getCurrentPosition;
@@ -297,14 +303,17 @@ export class MappaPage {
       //console.log(this.latlong);
       if (this.focus_on_marker)
         this.map.setView(this.latlong);
-    }), (error => {
-      alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
+    }), ((error) => {
+      this.requestAccuracy();
+      //alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
     }), { enableHighAccuracy: true });
   }
   getPosition() {
-    this.change_arrow_color();
-    this.map.setView(this.latlong, this.map.getZoom() < 16 ? 19 : this.map.getZoom());
-    this.focus_on_marker = true;
+    if (this.requestAccuracy()) {
+      this.change_arrow_color();
+      this.map.setView(this.latlong, this.map.getZoom() < 16 ? 19 : this.map.getZoom());
+      this.focus_on_marker = true;
+    }
   }
   async reverse_coords() {
     /*setInterval(() => {
