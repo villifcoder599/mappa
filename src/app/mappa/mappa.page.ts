@@ -19,12 +19,11 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
   3)Colorare in base alle autorizzazioni corsie riservate OK
   4)Qualche alert e notifiche per personalizzare
   4.1)Fix dragStart dragEnd
-  4.2)Mettere checbox vista_legenda in personalizza colore corsie
   4.3)Radio button da correggere (se clicco fuori dal radio non arriva l'input) e non seleziona alert salvato
-  4.4)Legenda troppo attaccata alla status bar
   4.5)alert divieto ovale su smartphone (provare min e max height/width)
   4.6)Mettere l'invia notifica nel codice al posto giusto
   4.7)Perfezionare requestAccuracy nel getPosition()
+  4.8)check_street controlla il .tags che prob. non esiste
   5)Presentazione
 */
 @Component({
@@ -144,15 +143,15 @@ export class MappaPage {
     this.legend.addTo(this.map);
   }
   ionViewDidEnter() {
+    this.load_data_from_memory();
     if (this.map == null) {
       this.initMap();
       this.enable_device_orientation();
+      this.create_legend();
       // this.getPosition();
     }
-    console.log(this.count_map_view_selected);
     this.showMap();
-    this.load_data_from_memory();
-    console.log(this.autoriz_user);
+    this.draw_multilines();
   }
   requestAccuracy() {
     var ok=true;
@@ -178,14 +177,15 @@ export class MappaPage {
       }]
     }).then((alert) => alert.present());
   }
-  show_alert() {
+  async show_alert() {
     console.log(this.custom_alert);
-    var div = '<div class=' + this.custom_alert.div_class + '>';
-    var icon = '<ion-icon name=' + this.custom_alert.ion_icon_name + ' class=' + this.custom_alert.ion_icon_class + '></ion-icon>';
+    var div = '<div class="' + this.custom_alert.div_class + '">';
+    console.log(div);
+    var icon = '<ion-icon name="' + this.custom_alert.ion_icon_name + '" class="' + this.custom_alert.ion_icon_class + '"></ion-icon>';
     var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
     var msg = this.custom_alert.ion_icon_name == '' ? msg = div + txt : msg = div + icon + txt;
     console.log(msg);
-    var time = 2000;
+    var time = 100000;
     this.alertController.create({
       cssClass: this.custom_alert.css_class,
       message: msg + (time + 1000) / 1000 + '</div></div>',
@@ -199,7 +199,7 @@ export class MappaPage {
           clearInterval(intervall);
         }
         time = time - 1000;
-      }, 1000);
+      },time);
     });
   }
   initMap() {
@@ -234,7 +234,6 @@ export class MappaPage {
       this.colors_selected = this.sel_line_color_page.colors_selected;
     if (this.custom_alert == null)
       this.custom_alert = this.custom_alert_page.selected_radio;
-    this.draw_multilines();
   }
   draw_multilines() {
     console.log(this.colors_selected);
@@ -315,7 +314,7 @@ export class MappaPage {
       this.focus_on_marker = true;
     }
   }
-  async reverse_coords() {
+  reverse_coords() {
     /*setInterval(() => {
       fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1])
         .then((response) => response.json())
@@ -328,7 +327,7 @@ export class MappaPage {
         })
     }, 5000);*/
   }
-  async check_street() {
+  check_street() {
     fetch("assets/docs/corsie_riservate.gpx").then(res => res.json()).then(json => {
       var find_corsia = this.find_corsia_riservata(json.corsie_riservate);
       if (find_corsia[0]) {
@@ -344,7 +343,7 @@ export class MappaPage {
     while (l <= r) {
       m = ((l + r) / 2) >> 0; //cancello il resto
       if (corsie_riservate[m].pk_corsia == this.osm_id)
-        return [true, m];
+        return [true, m]; 
       if (corsie_riservate[m].pk_corsia < this.osm_id)
         l = m + 1;
       else
@@ -362,7 +361,7 @@ export class MappaPage {
     return found;
   }
   //Ruota marker_position in base a dove punta il telefono
-  async enable_device_orientation() {
+  enable_device_orientation() {
     this.deviceOrientation.watchHeading().subscribe(
       (data: DeviceOrientationCompassHeading) => {
         this.degrees = data.trueHeading;
@@ -379,4 +378,5 @@ export class MappaPage {
     console.log("send notifica");
     this.notifica_page.addNotifica('test' + this.count++);
   }
+ 
 }
