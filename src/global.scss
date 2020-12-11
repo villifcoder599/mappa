@@ -112,3 +112,19 @@
     align-self: center;
     padding-left: 3px;
 }
+.container .alert-message{
+    padding: 0;
+}
+#notifica{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+#notifica .text_label{
+    align-self: flex-start;
+    font: 500 18px Roboto, "Helvetica Neue", sans-serif;
+}
+#notifica .date_label{
+    align-self: flex-end;
+    font: 150 10px Roboto, "Helvetica Neue", sans-serif;
+}
