@@ -24,7 +24,7 @@ export class CustomAlertPage {
     ion_icon_name: 'alert'
   }, {
     id: 2,
-    name: 'Arcobaleno',
+    name: 'Quadrato',
     css_class: 'rounded-2-class',
     div_class: 'msg_custom',
     ion_icon_class: 'alert',
