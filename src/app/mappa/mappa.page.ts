@@ -219,7 +219,10 @@ export class MappaPage {
   load_data_from_memory() {
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
     this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
-    this.notifica_page.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
+    if((window.localStorage.getItem('listaNotifica'))!=null)
+      this.notifica_page.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
+    else
+      this.notifica_page.listaNotifica =[]; 
     this.custom_alert = JSON.parse(window.localStorage.getItem('selected_radio'));
     if (window.localStorage.getItem("colors_selected") != null)
       this.colors_selected = JSON.parse(window.localStorage.getItem('colors_selected'));

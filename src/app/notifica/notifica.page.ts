@@ -28,7 +28,6 @@ export class NotificaPage {
   }
   addNotifica(val) {
     this.listaNotifica.push(val);
-    console.log(this.listaNotifica);
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
   }
   remove_all(){
