@@ -74,20 +74,13 @@ export class MappaPage {
     id: "hybrid",
     layer: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 'https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png'],
     options: {
-      maxZoom: 20,
-      minZoom: 1,
-      tileSize: 512,
-      zoomOffset: -1,
+       maxZoom: 19,
     }
   }, {
     id: "streetMap",
-    layer: [("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")],
+    layer: ['https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'],
     options: {
-      maxZoom: 20,
-      minZoom: 1,
-      tileSize: 512,
-      zoomOffset: -1,
-      accessToken: 'pk.eyJ1IjoidmlsbGlmY29kZXIiLCJhIjoiY2toNnFvdzIzMDV0bDJxcnRncnc1dmtpdSJ9.cjTkQIoO0eDAX3_Z-ReuxA'
+       maxZoom: 19,
     }
   }];
 
