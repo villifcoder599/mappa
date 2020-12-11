@@ -9,7 +9,7 @@ import { IonList } from '@ionic/angular';
 export class NotificaPage {
   @ViewChild('listone') lista: IonList;
 
-  listaNotifica = [];
+  listaNotifica = [{text:"",date:""}];
   constructor() {
     console.log("costruttore");
     var old = JSON.parse(localStorage.getItem('listaNotifica'));
@@ -26,8 +26,8 @@ export class NotificaPage {
     this.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
     console.log(this.listaNotifica);
   }
-  addNotifica(val) {
-    this.listaNotifica.push(val);
+  addNotifica(txt,date) {
+    this.listaNotifica.push({text:txt, date:date});
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
   }
   remove_all(){
