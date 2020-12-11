@@ -1,23 +1,29 @@
 <ion-header>
     <ion-toolbar>
-        <ion-title>Notifiche</ion-title>
+        <ion-title style="font-size: x-large;">Notifiche</ion-title>
         <ion-buttons slot="end">
-            <ion-button (click)="remove_all()" fill="clear">Cancella tutto</ion-button>
-          </ion-buttons>
+            <ion-button (click)="remove_all()" fill="clear" style="font-size: small;">Cancella tutto</ion-button>
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
 <ion-content>
     <ion-list #listone>
         <ion-item-sliding *ngFor="let entry of listaNotifica; let i = index">
+
             <ion-item>
-                <ion-label>{{entry}}</ion-label>
+                <div id="notifica">
+                    <div class="text_label">{{entry.text}}</div>
+                    <div class="date_label">{{entry.date}}</div>
+                </div>
             </ion-item>
-            <ion-item-options side= "end" (ionSwipe)= "deleteItem(i)">
-                <ion-item-option color = "danger" (click) = "deleteItem(i)" expandable>
-                    <ion-icon slot="icon-only" name = "trash"></ion-icon>
+
+            <ion-item-options side="end" (ionSwipe)="deleteItem(i)">
+                <ion-item-option color="danger" (click)="deleteItem(i)" expandable>
+                    <ion-icon slot="icon-only" name="trash"></ion-icon>
                 </ion-item-option>
             </ion-item-options>
+
         </ion-item-sliding>
     </ion-list>
 </ion-content>
