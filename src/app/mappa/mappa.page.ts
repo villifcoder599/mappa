@@ -17,14 +17,18 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 /*TODO list:
   1.1)ionic cap build android --prod per il problema della velocita dell'app
   3)Colorare in base alle autorizzazioni corsie riservate OK
-  4)Qualche alert e notifiche per personalizzare
-  4.1)Fix dragStart dragEnd
-  4.3)Radio button da correggere (se clicco fuori dal radio non arriva l'input) e non seleziona alert salvato
-  4.5)alert divieto ovale su smartphone (provare min e max height/width)
-  4.6)Mettere l'invia notifica nel codice al posto giusto
-  4.7)Perfezionare requestAccuracy nel getPosition()
-  4.8)check_street controlla il .tags che prob. non esiste
+  4)Qualche alert e notifiche per personalizzare OK
+  4.1)Fix dragStart dragEnd OK
+  4.3)Radio button da correggere (se clicco fuori dal radio non arriva l'input) e non seleziona alert salvato OK
+  4.5)alert divieto ovale su smartphone (provare min e max height/width) OK
+  4.6)Mettere l'invia notifica nel codice al posto giusto OK
+  4.7)check_street controlla il .tags che prob. non esiste OK
   5)Presentazione
+  5.1)Perfezionare requestAccuracy nel getPosition() 
+  5.2)Migliorare vista notifica con messaggio e data in basso a dx
+  5.3)Inserire label info e dividere le impostazioni in gruppi Personalizza e Info
+  5.4)Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata
+  5.5)aggiungere badge notifiche non lette
 */
 @Component({
   selector: 'app-mappa',
@@ -74,13 +78,13 @@ export class MappaPage {
     id: "hybrid",
     layer: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 'https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.png'],
     options: {
-       maxZoom: 19,
+      maxZoom: 19,
     }
   }, {
     id: "streetMap",
     layer: ['https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'],
     options: {
-       maxZoom: 19,
+      maxZoom: 19,
     }
   }];
 
@@ -147,11 +151,11 @@ export class MappaPage {
     this.draw_multilines();
   }
   requestAccuracy() {
-    var ok=true;
+    var ok = true;
     this.locationAccuracy.canRequest().then((canRequest: boolean) => {
       if (canRequest) {
         // the accuracy option will be ignored by iOS
-        this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(()=>{},()=>ok=false);
+        this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(() => { }, () => ok = false);
       }
       else { this.location_enable_manually("Richiesta di attivazione localizzazione rifiutata"); }
     });
@@ -192,7 +196,7 @@ export class MappaPage {
           clearInterval(intervall);
         }
         time = time - 1000;
-      },time);
+      }, time);
     });
   }
   initMap() {
@@ -219,10 +223,10 @@ export class MappaPage {
   load_data_from_memory() {
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
     this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
-    if((window.localStorage.getItem('listaNotifica'))!=null)
+    if ((window.localStorage.getItem('listaNotifica')) != null)
       this.notifica_page.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
     else
-      this.notifica_page.listaNotifica =[]; 
+      this.notifica_page.listaNotifica = [];
     this.custom_alert = JSON.parse(window.localStorage.getItem('selected_radio'));
     if (window.localStorage.getItem("colors_selected") != null)
       this.colors_selected = JSON.parse(window.localStorage.getItem('colors_selected'));
@@ -318,16 +322,18 @@ export class MappaPage {
           console.log(json);
           if (this.osm_id != json.osm_id) {
             this.osm_id = json.osm_id;
-            this.check_street();
+            this.check_street(json.address.road);
           }
         })
     }, 5000);*/
   }
-  check_street() {
+  check_street(road) {
     fetch("assets/docs/corsie_riservate.gpx").then(res => res.json()).then(json => {
       var find_corsia = this.find_corsia_riservata(json.corsie_riservate);
       if (find_corsia[0]) {
         if (!this.check_autorizzazione(json.corsie_riservate[find_corsia[1]].tags)) {
+          var date = new Date();
+          this.notifica_page.addNotifica('Sei transitato in ' + road + ', corsia di tipo ' + json.corsie_riservate[find_corsia[1]].tipo , date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear()+'  '+date.getHours()+':'+date.getMinutes());
           this.show_alert();
         }
       }
@@ -339,7 +345,7 @@ export class MappaPage {
     while (l <= r) {
       m = ((l + r) / 2) >> 0; //cancello il resto
       if (corsie_riservate[m].pk_corsia == this.osm_id)
-        return [true, m]; 
+        return [true, m];
       if (corsie_riservate[m].pk_corsia < this.osm_id)
         l = m + 1;
       else
@@ -372,7 +378,12 @@ export class MappaPage {
   count = 0;
   notifica() {
     console.log("send notifica");
-    this.notifica_page.addNotifica('test' + this.count++);
+    var data;
+    var ora = new Date();
+    data=(ora.getDate()+'/'+(ora.getMonth()+1)+'/'+ora.getFullYear()+'  '+ora.getHours()+':'+ora.getMinutes());
+    console.log()
+    this.notifica_page.addNotifica("Sei transitato in Via Romana, corsia di tipo A",data);
+    //this.notifica_page.addNotifica('test' + this.count++);
   }
- 
+
 }
