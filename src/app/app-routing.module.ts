@@ -18,6 +18,10 @@ const routes: Routes = [
     path: 'custom-alert',
     loadChildren: () => import('./custom-alert/custom-alert.module').then( m => m.CustomAlertPageModule)
   },
+  {
+    path: 'tutorial',
+    loadChildren: () => import('./tutorial/tutorial.module').then( m => m.TutorialPageModule)
+  },
 ];
 
 @NgModule({
