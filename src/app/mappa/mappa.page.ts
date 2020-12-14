@@ -1,4 +1,5 @@
 import { Component, Injectable } from '@angular/core';
+import {Router} from '@angular/router'
 import { Geolocation } from '@ionic-native/geolocation/ngx'
 import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
 import { HttpClient } from '@angular/common/http';
@@ -24,8 +25,8 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
   4.6)Mettere l'invia notifica nel codice al posto giusto OK
   4.7)check_street controlla il .tags che prob. non esiste OK
   5)Presentazione
-  5.1)Perfezionare requestAccuracy nel getPosition() 
-  5.2)Migliorare vista notifica con messaggio e data in basso a dx
+  5.1)Perfezionare requestAccuracy nel getPosition() (forse fatto ma ricontrolla)
+  5.2)Migliorare vista notifica con messaggio e data in basso a dx OK
   5.3)Inserire label info e dividere le impostazioni in gruppi Personalizza e Info
   5.4)Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata
   5.5)aggiungere badge notifiche non lette
@@ -88,9 +89,10 @@ export class MappaPage {
     }
   }];
 
-  constructor(private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+  constructor(private router:Router,private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     console.log(this.state_button_arrow);
-    this.latlong = [43.7996269, 11.2438267];
+    //this.latlong = [43.7996269, 11.2438267];
+    this.latlong=[43.80867, 11.25101];
     this.marker_circle = L.circleMarker(this.latlong, {
       radius: this.accuracy,
       stroke: false,
@@ -138,6 +140,9 @@ export class MappaPage {
       return div;
     })
     this.legend.addTo(this.map);
+  }
+  open_tutorial(){
+    this.router.navigate(['/tutorial']);
   }
   ionViewDidEnter() {
     this.load_data_from_memory();
@@ -204,7 +209,7 @@ export class MappaPage {
     this.go_next_map_view();
     this.map.on('dragstart', function () {
       this.focus_on_marker = false;
-      console.log(this.focus_on_marker);
+      console.log("focus_on_marker init map"+this.focus_on_marker);
     });
     this.map.on('dragend', (event) => this.drag_end_event(event));
     // var myLayer=L.geoJSON().addTo(this.map);
@@ -212,9 +217,9 @@ export class MappaPage {
   drag_end_event(event) {
     console.log(event);
     if (event.distance > 80 && this.state_button_arrow.state) {
-      this.focus_on_marker = true;
+      this.focus_on_marker = false;
       this.change_arrow_color();
-      console.log(this.state_button_arrow);
+      console.log(this.focus_on_marker);
     }
     if (this.state_button_arrow.state) {
       this.map.setView(this.latlong);
@@ -291,21 +296,22 @@ export class MappaPage {
     this.marker_position.addTo(this.map);
   }
   watch_Position() {
-    this.requestAccuracy();
-    navigator.geolocation.watchPosition((position => {
-      this.latlong = [position.coords.latitude, position.coords.longitude];
-      this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
-      this.geolocation.getCurrentPosition;
-      this.marker_position.setLatLng(this.latlong);
-      this.marker_circle.setLatLng(this.latlong);
-      this.marker_circle.setRadius(this.accuracy);
-      //console.log(this.latlong);
-      if (this.focus_on_marker)
-        this.map.setView(this.latlong);
-    }), ((error) => {
-      this.requestAccuracy();
-      //alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
-    }), { enableHighAccuracy: true });
+    // this.requestAccuracy();
+    // navigator.geolocation.watchPosition((position => {
+    //   this.latlong = [position.coords.latitude, position.coords.longitude];
+    //   this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
+    //   this.geolocation.getCurrentPosition;
+    //   this.marker_position.setLatLng(this.latlong);
+    //   this.marker_circle.setLatLng(this.latlong);
+    //   this.marker_circle.setRadius(this.accuracy);
+    //   //console.log(this.latlong);
+    //   console.log("focus_on_marker: " + this.focus_on_marker)
+    //   if (this.focus_on_marker)
+    //     this.map.setView(this.latlong);
+    // }), ((error) => {
+    //   this.requestAccuracy();
+    //   //alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
+    // }), { enableHighAccuracy: true });
   }
   getPosition() {
     if (this.requestAccuracy()) {
