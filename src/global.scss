@@ -128,3 +128,35 @@
     align-self: flex-end;
     font: 150 10px Roboto, "Helvetica Neue", sans-serif;
 }
+ion-slides {
+    height: 100%;
+  }
+ion-slides  .swiper-slide {
+    display: block;
+  }
+
+ion-slides  .swiper-slide h2 {
+    margin-top: 2.8rem;
+  }
+
+ion-slides  .swiper-slide img {
+    max-height: 50%;
+    max-width: 50%;
+    margin: 50px 0 0px;
+    pointer-events: none;
+  }
+
+ion-slides  b {
+    font-weight: 500;
+  }
+
+ion-slides  p {
+    padding: 0 40px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ion-color-step-600, #60646b);
+  }
+
+ion-slides p b {
+    color: var(--ion-text-color, #000000);
+  }
