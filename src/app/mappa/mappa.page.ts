@@ -29,9 +29,10 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
   5)Presentazione
   5.1)Perfezionare requestAccuracy nel getPosition() (forse fatto ma ricontrolla)
   5.2)Migliorare vista notifica con messaggio e data in basso a dx OK
-  5.3)Inserire label info e dividere le impostazioni in gruppi Personalizza e Info
+  5.3)Inserire label info e dividere le impostazioni in gruppi Personalizza e Info OK
   5.4)Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata
-  5.5)aggiungere badge notifiche non lette
+  5.5)Aggiungere badge notifiche non lette
+  5.6)Creare pagina dettagli corsie riservate e pagina attribuzioni(openstreetmap,etc)
 */
 @Component({
   selector: 'app-mappa',
@@ -155,7 +156,7 @@ export class MappaPage {
     this.router.navigate(['/tutorial']);
   }
   ionViewDidEnter() {
-    
+
     this.load_data_from_memory();
     if (this.map == null) {
       this.initMap();
