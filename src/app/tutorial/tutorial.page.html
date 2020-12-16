@@ -1,33 +1,40 @@
-<ion-app>
-  <ion-content fullscreen class="ion-padding" scroll-y="false">
-    <ion-slides>
 
-      <ion-slide>
+  <ion-content fullscreen class="ion-padding" scroll-y="false">
+    <ion-slides pager="true">
+
+      <ion-slide class="slide-1">
         <div class="slide">
           <img src="../../assets/images/slide-1.png"/>
-          <h2>Welcome</h2>
-          <p>The <b>ionic conference app</b> is a practical preview of the ionic framework in action, and a demonstration of proper code use.</p>
+          <h2>Benvenuto</h2>
+          <p>Questa app è stata sviluppata per segnalare le corsie riservate nella città di Firenze</p>
         </div>
       </ion-slide>
 
-      <ion-slide>
+      <ion-slide class="slide-2">
         <img src="../../assets/images/slide-2.png"/>
-        <h2>What is Ionic?</h2>
-        <p><b>Ionic Framework</b> is an open source SDK that enables developers to build high quality mobile apps with web technologies like HTML, CSS, and JavaScript.</p>
+        <h2>Come appare</h2>
+        <p>Nella mappa sarranno identificate, con diversi colori, le tipologie di corsie riservate in modo da renderle visibili durante i tuoi spostamenti</p>
       </ion-slide>
 
-      <ion-slide>
-        <img src="../../assets/images/slide-3.jpeg"/>
-        <h2>What is Ionic Appflow?</h2>
-        <p><b>Ionic Appflow</b> is a powerful set of services and features built on top of Ionic Framework that brings a totally new level of app development agility to mobile dev teams.</p>
+      <ion-slide class="slide-3">
+        <img src="../../assets/images/slide-3.png"/>
+        <h2>Servizio di notifica</h2>
+        <p>Se transiti in una corsia non autorizzata verrai avvisato e nel centro notifiche comparirà una notifica con informazioni dettagiate </p>
       </ion-slide>
 
-      <ion-slide>
-        <img src="../../assets/images/slide-4.png"/>
-        <h2>Ready to Play?</h2>
+      <ion-slide class="slide-4">
+        <h2>Passa all'app</h2>
+        <ion-item>
+          <ion-label>Non mostrare più il tutorial</ion-label>
+          <ion-checkbox slot="end" [(ngModel)]="checkbox_tutorial" (click)="setCheckbox()"></ion-checkbox>
+          <ion-checkbox disabled="false"></ion-checkbox>
+          <ion-button>test</ion-button>
+        </ion-item>
+        <br>
         <ion-button fill="clear" (click)="readyToPlay()">Continue <ion-icon slot="end" name="arrow-forward"></ion-icon></ion-button>
+        <ion-checkbox>Prova</ion-checkbox>
       </ion-slide>
 
     </ion-slides>
   </ion-content>
-</ion-app>
+
