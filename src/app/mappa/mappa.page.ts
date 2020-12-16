@@ -1,5 +1,5 @@
 import { Component, Injectable } from '@angular/core';
-import {Router} from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 import { Geolocation } from '@ionic-native/geolocation/ngx'
 import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
 import { HttpClient } from '@angular/common/http';
@@ -14,6 +14,8 @@ import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 import { SelectionLineColorPage } from '../selection-line-color/selection-line-color.page';
 import { NotificaPage } from '../notifica/notifica.page';
 import { CustomAlertPage } from '../custom-alert/custom-alert.page';
+
+
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cap build android --prod per il problema della velocita dell'app
@@ -37,6 +39,7 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
   styleUrls: ['./mappa.page.scss'],
 })
 export class MappaPage {
+ 
   colors_selected;
   legend;
   icon_map_view_selected = [{
@@ -88,31 +91,38 @@ export class MappaPage {
       maxZoom: 19,
     }
   }];
-
-  constructor(private router:Router,private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
-    console.log(this.state_button_arrow);
-    //this.latlong = [43.7996269, 11.2438267];
-    this.latlong=[43.80867, 11.25101];
-    this.marker_circle = L.circleMarker(this.latlong, {
-      radius: this.accuracy,
-      stroke: false,
-      color: '#1275ff',
-    });
-    var icon_path = 'https://cdn3.iconfinder.com/data/icons/glypho-travel/64/gps-navi-arrow-512.png';
-    var navIcon = L.icon({
-      iconUrl: icon_path,
-      iconSize: [26, 26], // size of the icon
-      iconAnchor: [13, 13], // point of the icon which will correspond to marker's location
-    });
-    this.marker_position = L.marker(this.latlong, { icon: navIcon });
-    this.osm_id = 2361804077;
-
+  
+  constructor(private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+    this.platform.ready().then(() => {
+      console.log("costruttore");
+      //this.latlong = [43.7996269, 11.2438267];
+      this.latlong = [43.80867, 11.25101];
+      this.marker_circle = L.circleMarker(this.latlong, {
+        radius: this.accuracy,
+        stroke: false,
+        color: '#1275ff',
+      });
+      var icon_path = 'https://cdn3.iconfinder.com/data/icons/glypho-travel/64/gps-navi-arrow-512.png';
+      var navIcon = L.icon({
+        iconUrl: icon_path,
+        iconSize: [26, 26], // size of the icon
+        iconAnchor: [13, 13], // point of the icon which will correspond to marker's location
+      });
+      this.marker_position = L.marker(this.latlong, { icon: navIcon });
+      this.osm_id = 2361804077;
+      var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
+    if((tutorial==null || tutorial==false)){
+      this.router.navigate(['/tutorial']);
+    }
+    })
+    
     //2361807728->autorizzato
     //2361804077->non autorizzato
-
+  }
+  ngOnDestroy(){
+    console.log("destroying child...");
   }
   change_arrow_color() {
-    console.log(this.state_button_arrow);
     switch (this.state_button_arrow.color) {
       case "light": {
         this.state_button_arrow.color = "dark";
@@ -141,10 +151,11 @@ export class MappaPage {
     })
     this.legend.addTo(this.map);
   }
-  open_tutorial(){
+  open_tutorial() {
     this.router.navigate(['/tutorial']);
   }
   ionViewDidEnter() {
+    
     this.load_data_from_memory();
     if (this.map == null) {
       this.initMap();
@@ -180,13 +191,10 @@ export class MappaPage {
     }).then((alert) => alert.present());
   }
   async show_alert() {
-    console.log(this.custom_alert);
     var div = '<div class="' + this.custom_alert.div_class + '">';
-    console.log(div);
     var icon = '<ion-icon name="' + this.custom_alert.ion_icon_name + '" class="' + this.custom_alert.ion_icon_class + '"></ion-icon>';
     var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
     var msg = this.custom_alert.ion_icon_name == '' ? msg = div + txt : msg = div + icon + txt;
-    console.log(msg);
     var time = 100000;
     this.alertController.create({
       cssClass: this.custom_alert.css_class,
@@ -209,17 +217,14 @@ export class MappaPage {
     this.go_next_map_view();
     this.map.on('dragstart', function () {
       this.focus_on_marker = false;
-      console.log("focus_on_marker init map"+this.focus_on_marker);
     });
     this.map.on('dragend', (event) => this.drag_end_event(event));
     // var myLayer=L.geoJSON().addTo(this.map);
   }
   drag_end_event(event) {
-    console.log(event);
     if (event.distance > 80 && this.state_button_arrow.state) {
       this.focus_on_marker = false;
       this.change_arrow_color();
-      console.log(this.focus_on_marker);
     }
     if (this.state_button_arrow.state) {
       this.map.setView(this.latlong);
@@ -241,11 +246,8 @@ export class MappaPage {
       this.custom_alert = this.custom_alert_page.selected_radio;
   }
   draw_multilines() {
-    console.log(this.colors_selected);
-
     fetch("assets/docs/geoJSON_corsie.geojson")
       .then((response) => response.json()).then((json) => {
-        console.log(this.colors_selected);
         var count = 0;
         var opacity_value = 0.7;
         if (this.myLine_layer != null) //remove old layer
@@ -274,9 +276,7 @@ export class MappaPage {
       )
       this.count_map_view_selected = (this.count_map_view_selected + 1) % this.baseMaps.length; //in this pos. to syncro icon_map_viw and basemap
     }
-    console.log(this.count_map_view_selected);
     this.go_next_map_view();
-    console.log(this.count_map_view_selected);
   }
   go_next_map_view() {
     var count = 0;
@@ -304,8 +304,6 @@ export class MappaPage {
     //   this.marker_position.setLatLng(this.latlong);
     //   this.marker_circle.setLatLng(this.latlong);
     //   this.marker_circle.setRadius(this.accuracy);
-    //   //console.log(this.latlong);
-    //   console.log("focus_on_marker: " + this.focus_on_marker)
     //   if (this.focus_on_marker)
     //     this.map.setView(this.latlong);
     // }), ((error) => {
@@ -325,7 +323,6 @@ export class MappaPage {
       fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1])
         .then((response) => response.json())
         .then((json) => {
-          console.log(json);
           if (this.osm_id != json.osm_id) {
             this.osm_id = json.osm_id;
             this.check_street(json.address.road);
@@ -339,7 +336,7 @@ export class MappaPage {
       if (find_corsia[0]) {
         if (!this.check_autorizzazione(json.corsie_riservate[find_corsia[1]].tags)) {
           var date = new Date();
-          this.notifica_page.addNotifica('Sei transitato in ' + road + ', corsia di tipo ' + json.corsie_riservate[find_corsia[1]].tipo , date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear()+'  '+date.getHours()+':'+date.getMinutes());
+          this.notifica_page.addNotifica('Sei transitato in ' + road + ', corsia di tipo ' + json.corsie_riservate[find_corsia[1]].tipo, date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' + date.getHours() + ':' + date.getMinutes());
           this.show_alert();
         }
       }
@@ -381,14 +378,12 @@ export class MappaPage {
     this.autoriz_user[id] = value;
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
   }
-  count = 0;
   notifica() {
     console.log("send notifica");
     var data;
     var ora = new Date();
-    data=(ora.getDate()+'/'+(ora.getMonth()+1)+'/'+ora.getFullYear()+'  '+ora.getHours()+':'+ora.getMinutes());
-    console.log()
-    this.notifica_page.addNotifica("Sei transitato in Via Romana, corsia di tipo A",data);
+    data = (ora.getDate() + '/' + (ora.getMonth() + 1) + '/' + ora.getFullYear() + '  ' + ora.getHours() + ':' + ora.getMinutes());
+    this.notifica_page.addNotifica("Sei transitato in Viale Gaetano Pieraccini, corsia di tipo C", data);
     //this.notifica_page.addNotifica('test' + this.count++);
   }
 
