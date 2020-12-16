@@ -24,10 +24,7 @@
 @import "~@ionic/angular/css/text-alignment.css";
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
-// .custom_class .alert-message{
-//     font:500 20px/32px Roboto, "Helvetica Neue", sans-serif;
-//     color:#000000;
-// }
+
 .alert{
     font-size: 85px;
     color:#ff0000;
@@ -53,7 +50,7 @@
     border:15px solid #ff0000;
    position: relative;
    width: 275px;
-   padding-top: 260px; 
+   padding-top: 255px; 
    border-radius:100%
 }
 .container .alert-head{
@@ -136,15 +133,23 @@ ion-slides  .swiper-slide {
   }
 
 ion-slides  .swiper-slide h2 {
-    margin-top: 2.8rem;
+    margin-top: 0.8rem;
   }
 
-ion-slides  .swiper-slide img {
-    max-height: 50%;
-    max-width: 50%;
+ion-slides  .swiper-slide  {
+    max-height: 100%;
+    max-width: 100%;
     margin: 50px 0 0px;
     pointer-events: none;
   }
+ion-slides .slide-1 img{
+    max-height: 66%;
+    max-width: 66%;
+}
+ion-slides .swiper-slide .slide-2 img{
+    max-height: 100%;
+    max-width: 100%;
+}
 
 ion-slides  b {
     font-weight: 500;
@@ -160,3 +165,9 @@ ion-slides  p {
 ion-slides p b {
     color: var(--ion-text-color, #000000);
   }
+
+ion-item-divider {
+    background-color: #808080;
+    color: #fff;
+    height: 32px;
+}
