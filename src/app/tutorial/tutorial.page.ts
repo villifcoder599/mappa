@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import {Router} from '@angular/router'
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-tutorial',
   templateUrl: './tutorial.page.html',
@@ -12,23 +12,23 @@ import {Router} from '@angular/router'
   slide3->alert e notifiche
   slide4->Centro notifiche
 */
-export class TutorialPage implements OnInit {
-
-  constructor(private platform:Platform,private router:Router) { 
-    this.platform.ready().then(()=>{
-    var slides = document.querySelector('ion-slides');
-    slides.options = {
-      initialSlide: 0,
-      speed: 400
-    }
+export class TutorialPage {
+  constructor(private platform: Platform, private router: Router) {
+    this.platform.ready().then(() => {
+      var slides = document.querySelector('ion-slides');
+      slides.options = {
+        initialSlide: 0,
+        speed: 400,
+        zoom: false,
+      }
     })
   }
-  readyToPlay(){
+  readyToPlay() {
+    window.localStorage.setItem('tutorial', JSON.stringify(true));
     this.router.navigate(['/tabs/mappa']);
   }
-  ngOnInit() {
+
+  ionViewDidEnter(){
     
-
   }
-
 }
