@@ -10,7 +10,7 @@ export class ImpostazioniPage implements OnInit {
   constructor(private router:Router) { }
 
   ngOnInit() {
-    
+
   }
   open_details_page(){
     this.router.navigate(['details']);
@@ -20,5 +20,8 @@ export class ImpostazioniPage implements OnInit {
   }
   open_custom_alert_page(){
     this.router.navigate(['custom-alert']);
+  }
+  open_tutorial_page(){
+    this.router.navigate(['tutorial'])
   }
 }
