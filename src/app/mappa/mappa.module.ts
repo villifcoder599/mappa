@@ -19,7 +19,7 @@ import { SelectionLineColorPageRoutingModule } from '../selection-line-color/sel
 import { NotificaPage } from '../notifica/notifica.page';
 import { NotificaPageRoutingModule } from '../notifica/notifica-routing.module';
 import { CustomAlertPage } from '../custom-alert/custom-alert.page';
-import { CustomAlertPageModule } from '../custom-alert/custom-alert.module';
+import { CustomAlertPageRoutingModule } from '../custom-alert/custom-alert-routing.module';
 @NgModule({
   imports: [
     CommonModule,
@@ -30,7 +30,7 @@ import { CustomAlertPageModule } from '../custom-alert/custom-alert.module';
     HttpClientModule,
     SelectionLineColorPageRoutingModule,
     NotificaPageRoutingModule,
-    CustomAlertPageModule
+    CustomAlertPageRoutingModule,
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
     AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,CustomAlertPage],
