@@ -15,6 +15,7 @@ import { SelectionLineColorPage } from '../selection-line-color/selection-line-c
 import { NotificaPage } from '../notifica/notifica.page';
 import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 
+import { TabsPage} from '../tabs/tabs.page';
 
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
@@ -40,7 +41,7 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
   styleUrls: ['./mappa.page.scss'],
 })
 export class MappaPage {
- 
+  unread;
   colors_selected;
   legend;
   icon_map_view_selected = [{
@@ -93,7 +94,7 @@ export class MappaPage {
     }
   }];
   
-  constructor(private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+  constructor(private tabsPage:TabsPage,private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
       console.log("costruttore");
       //this.latlong = [43.7996269, 11.2438267];
@@ -385,7 +386,7 @@ export class MappaPage {
     var ora = new Date();
     data = (ora.getDate() + '/' + (ora.getMonth() + 1) + '/' + ora.getFullYear() + '  ' + ora.getHours() + ':' + ora.getMinutes());
     this.notifica_page.addNotifica("Sei transitato in Viale Gaetano Pieraccini, corsia di tipo C", data);
+    this.tabsPage.update_badge();
     //this.notifica_page.addNotifica('test' + this.count++);
   }
-
 }
