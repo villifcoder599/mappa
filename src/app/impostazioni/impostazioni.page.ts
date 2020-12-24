@@ -22,6 +22,9 @@ export class ImpostazioniPage implements OnInit {
     this.router.navigate(['custom-alert']);
   }
   open_tutorial_page(){
-    this.router.navigate(['tutorial'])
+    this.router.navigate(['tutorial']);
+  }
+  open_istruzioni(){
+    this.router.navigate(['istruzioni-autorizzazioni']);
   }
 }
