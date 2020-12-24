@@ -1,7 +1,6 @@
-import { Component, OnInit, Injectable } from '@angular/core';
-import { MappaPage } from '../mappa/mappa.page'
+import { Component } from '@angular/core';
+import { MappaPage } from '../mappa/mappa.page';
 
-@Injectable({ providedIn: 'root' })
 @Component({
   selector: 'app-details',
   templateUrl: './details.page.html',
@@ -9,8 +8,7 @@ import { MappaPage } from '../mappa/mappa.page'
 })
 export class DetailsPage {
   init = false;
-  last_data_user;
-  tags_name = [
+  autoriz_user = [
     { id: '', val: 'Bus Urbano', isChecked: false },
     { id: '', val: 'Bus Extraurbano', isChecked: false },
     { id: '', val: 'Handicap', isChecked: false },
@@ -23,26 +21,19 @@ export class DetailsPage {
     { id: '', val: 'Deroga', isChecked: false },
     { id: '', val: 'Soccorso', isChecked: false }
   ];
-  constructor(private mappa: MappaPage) {
+  constructor() {
 
   }
   ionViewDidEnter() {
-    var iterator_name = this.mappa.tags_name;
-    this.last_data_user=JSON.parse(window.localStorage.getItem('autoriz_user'));
-    if(this.last_data_user==null)
-      this.last_data_user=this.mappa.autoriz_user;
-    console.log(this.mappa.autoriz_user);
-    console.log(iterator_name);
-    console.log(this.mappa.accuracy);
-     for (var i = 0; i < iterator_name.length; i++) {
-       this.tags_name[i].isChecked = this.last_data_user[iterator_name[i]] == 0 ? false : true;
-       this.tags_name[i].id = iterator_name[i];
-     }
+    var app=JSON.parse(window.localStorage.getItem('autoriz_user'));
+    console.log(this.autoriz_user);
+      for (var i = 0; i < app.length; i++) {
+        if(app[i].isChecked)
+          this.autoriz_user[i].isChecked = true;
+      }
   }
   update_data(event) {
-    this.mappa.set_autoriz_user(event.id, event.isChecked == true ? 1 : 0)
-    console.log(this.mappa.autoriz_user[event.id]);
+    window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
     console.log(event);
   }
-
 }
