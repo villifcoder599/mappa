@@ -20,6 +20,9 @@ import { NotificaPage } from '../notifica/notifica.page';
 import { NotificaPageRoutingModule } from '../notifica/notifica-routing.module';
 import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 import { CustomAlertPageRoutingModule } from '../custom-alert/custom-alert-routing.module';
+import { DetailsPage } from '../details/details.page';
+import { DetailsPageRoutingModule } from '../details/details-routing.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -31,9 +34,10 @@ import { CustomAlertPageRoutingModule } from '../custom-alert/custom-alert-routi
     SelectionLineColorPageRoutingModule,
     NotificaPageRoutingModule,
     CustomAlertPageRoutingModule,
+    DetailsPageRoutingModule
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
-    AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,CustomAlertPage],
+    AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,CustomAlertPage,DetailsPage],
   declarations: [MappaPage]
 })
 export class MappaPageModule { }

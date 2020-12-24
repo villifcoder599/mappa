@@ -1,5 +1,5 @@
-import { Component, Injectable } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router'
+import { Component } from '@angular/core';
+import { Router } from '@angular/router'
 import { Geolocation } from '@ionic-native/geolocation/ngx'
 import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
 import { HttpClient } from '@angular/common/http';
@@ -14,8 +14,8 @@ import { LocationAccuracy } from '@ionic-native/location-accuracy/ngx';
 import { SelectionLineColorPage } from '../selection-line-color/selection-line-color.page';
 import { NotificaPage } from '../notifica/notifica.page';
 import { CustomAlertPage } from '../custom-alert/custom-alert.page';
-
-import { TabsPage} from '../tabs/tabs.page';
+import { DetailsPage } from '../details/details.page';
+import { TabsPage } from '../tabs/tabs.page';
 
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
@@ -32,9 +32,10 @@ import { TabsPage} from '../tabs/tabs.page';
   5.2)Migliorare vista notifica con messaggio e data in basso a dx OK
   5.3)Inserire label info e dividere le impostazioni in gruppi Personalizza e Info OK
   5.4)Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata
-  5.5)Aggiungere badge notifiche non lette
+  5.5)Aggiungere badge notifiche non lette OK
   5.6)Creare pagina dettagli corsie riservate e pagina attribuzioni(openstreetmap,etc)
 */
+
 @Component({
   selector: 'app-mappa',
   templateUrl: './mappa.page.html',
@@ -63,7 +64,7 @@ export class MappaPage {
   myLine_layer = null;
   custom_alert;
   tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso"];
-  autoriz_user = { "bus_urb": 0, "bus_extra": 0, "hand": 0, "taxi": 0, "ncc": 0, "pol_socc": 0, "ff_armate": 0, "mezzi_op": 0, "autorizz": 0, "deroga": 0, "soccorso": 0 };
+  autoriz_user = null;
   actual_layer = [];
   state_button_arrow = {
     color: "light",
@@ -93,8 +94,8 @@ export class MappaPage {
       maxZoom: 19,
     }
   }];
-  
-  constructor(private tabsPage:TabsPage,private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+
+  constructor(private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
       console.log("costruttore");
       //this.latlong = [43.7996269, 11.2438267];
@@ -113,15 +114,15 @@ export class MappaPage {
       this.marker_position = L.marker(this.latlong, { icon: navIcon });
       this.osm_id = 2361804077;
       var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
-    if((tutorial==null || tutorial==false)){
-      this.router.navigate(['/tutorial']);
-    }
+      if ((tutorial == null || tutorial == false)) {
+        this.router.navigate(['/tutorial']);
+      }
     })
-    
+
     //2361807728->autorizzato
     //2361804077->non autorizzato
   }
-  ngOnDestroy(){
+  ngOnDestroy() {
     console.log("destroying child...");
   }
   change_arrow_color() {
@@ -165,6 +166,7 @@ export class MappaPage {
       this.create_legend();
       // this.getPosition();
     }
+    //window.localStorage.clear();
     this.showMap();
     this.draw_multilines();
   }
@@ -234,7 +236,12 @@ export class MappaPage {
   }
   load_data_from_memory() {
     this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
-    this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
+    if (JSON.parse(window.localStorage.getItem('autoriz_user')) != null)
+      this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
+    else {
+      this.autoriz_user = this.detailsPage.autoriz_user;
+      window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
+    }
     if ((window.localStorage.getItem('listaNotifica')) != null)
       this.notifica_page.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
     else
@@ -362,7 +369,7 @@ export class MappaPage {
   check_autorizzazione(tags = []) {
     var found = false;
     for (var i = 0; i < this.tags_name.length && !found; i++) {
-      if (this.autoriz_user[this.tags_name[i]] == 1 && tags[this.tags_name[i]] == 1)
+      if (this.autoriz_user[i].isChecked && tags[this.tags_name[i]] == 1)
         found = true;
     }
     return found;
@@ -376,10 +383,7 @@ export class MappaPage {
       }
     );
   }
-  set_autoriz_user(id, value) {
-    this.autoriz_user[id] = value;
-    window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
-  }
+
   notifica() {
     console.log("send notifica");
     var data;
@@ -387,6 +391,5 @@ export class MappaPage {
     data = (ora.getDate() + '/' + (ora.getMonth() + 1) + '/' + ora.getFullYear() + '  ' + ora.getHours() + ':' + ora.getMinutes());
     this.notifica_page.addNotifica("Sei transitato in Viale Gaetano Pieraccini, corsia di tipo C", data);
     this.tabsPage.update_badge();
-    //this.notifica_page.addNotifica('test' + this.count++);
   }
 }
