@@ -98,6 +98,7 @@ export class MappaPage {
   constructor(private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
       console.log("costruttore");
+      //window.localStorage.clear();
       //this.latlong = [43.7996269, 11.2438267];
       this.latlong = [43.80867, 11.25101];
       this.marker_circle = L.circleMarker(this.latlong, {
@@ -114,7 +115,7 @@ export class MappaPage {
       this.marker_position = L.marker(this.latlong, { icon: navIcon });
       this.osm_id = 2361804077;
       var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
-      if ((tutorial == null || tutorial == false)) {
+      if ((tutorial != true)) {
         this.router.navigate(['/tutorial']);
       }
     })
@@ -166,7 +167,6 @@ export class MappaPage {
       this.create_legend();
       // this.getPosition();
     }
-    //window.localStorage.clear();
     this.showMap();
     this.draw_multilines();
   }
@@ -368,8 +368,8 @@ export class MappaPage {
   //cerco se l'utente ha un autorizzazione per la corsia riservata
   check_autorizzazione(tags = []) {
     var found = false;
-    for (var i = 0; i < this.tags_name.length && !found; i++) {
-      if (this.autoriz_user[i].isChecked && tags[this.tags_name[i]] == 1)
+    for (var i = 0; i < tags.length && !found; i++) {
+      if (this.autoriz_user[i].isChecked && tags[this.autoriz_user[i].id] == 1)
         found = true;
     }
     return found;
