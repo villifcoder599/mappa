@@ -9,17 +9,17 @@ import { MappaPage } from '../mappa/mappa.page';
 export class DetailsPage {
   init = false;
   autoriz_user = [
-    { id: '', val: 'Bus Urbano', isChecked: false },
-    { id: '', val: 'Bus Extraurbano', isChecked: false },
-    { id: '', val: 'Handicap', isChecked: false },
-    { id: '', val: 'Taxi', isChecked: false },
-    { id: '', val: 'Ncc', isChecked: false },
-    { id: '', val: 'Servizi di polizia e soccorso', isChecked: false },
-    { id: '', val: 'Forze armate', isChecked: false },
-    { id: '', val: 'Mezzi operativi', isChecked: false },
-    { id: '', val: 'Autorizzazioni', isChecked: false },
-    { id: '', val: 'Deroga', isChecked: false },
-    { id: '', val: 'Soccorso', isChecked: false }
+    { id: 'bus_urb', val: 'Bus Urbano', isChecked: false },
+    { id: 'bus_extra', val: 'Bus Extraurbano', isChecked: false },
+    { id: 'hand', val: 'Handicap', isChecked: false },
+    { id: 'taxi', val: 'Taxi', isChecked: false },
+    { id: 'ncc', val: 'Ncc', isChecked: false },
+    { id: 'pol_socc', val: 'Servizi di polizia e soccorso', isChecked: false },
+    { id: 'ff_armate', val: 'Forze armate', isChecked: false },
+    { id: 'mezzi_op', val: 'Mezzi operativi', isChecked: false },
+    { id: 'autorizz', val: 'Autorizzazioni', isChecked: false },
+    { id: 'deroga', val: 'Deroga', isChecked: false },
+    { id: 'soccorso', val: 'Soccorso', isChecked: false }
   ];
   constructor() {
 
