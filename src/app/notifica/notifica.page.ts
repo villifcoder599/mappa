@@ -1,4 +1,4 @@
-import { Component, Injectable, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { IonList, Platform } from '@ionic/angular';
 import { TabsPage } from '../tabs/tabs.page';
 @Component({
@@ -6,45 +6,41 @@ import { TabsPage } from '../tabs/tabs.page';
   templateUrl: './notifica.page.html',
   styleUrls: ['./notifica.page.scss'],
 })
-export class NotificaPage {
+export class NotificaPage{
   @ViewChild('listone') lista: IonList;
-
-  listaNotifica = [{ text: "", date: "" }];
+  count=0;
+  listaNotifica = [];
   constructor(private tabsPage: TabsPage, private platform: Platform) {
     this.platform.ready().then(() => {
-      console.log("costruttore");
-      var old = JSON.parse(localStorage.getItem('listaNotifica'));
-      if (old != undefined) {
-        console.log("!=undefined");
-        old.forEach(element => {
-          this.listaNotifica.push(element);
-        });
-      }
+      this.listaNotifica = JSON.parse(localStorage.getItem('listaNotifica'));
+      this.count=this.listaNotifica.length;
     })
   }
 
   ionViewDidEnter() {
-    console.log(this.listaNotifica);
     this.tabsPage.clear_badge();
     this.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
     window.localStorage.setItem('unread', JSON.stringify(0));
-    console.log(this.listaNotifica);
+  }
+  create_notifica(nome, tipo) {
+    var data;
+    var ora = new Date();
+    data = (ora.getDate() + '/' + (ora.getMonth() + 1) + '/' + ora.getFullYear() + '  ' + ora.getHours() + ':' + ora.getMinutes());
+    this.addNotifica("Sei transitato in " + nome + ' ,corsia di tipo ' + tipo, data);
+    this.tabsPage.update_badge();
   }
   addNotifica(txt, date) {
+    this.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
     this.listaNotifica.push({ text: txt, date: date });
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
   }
   remove_all() {
     this.listaNotifica = [];
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
-    console.log("rimosse" + this.listaNotifica);
   }
   deleteItem(i) {
     this.lista.closeSlidingItems();
-    console.log(i);
     this.listaNotifica.splice(i, 1);
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
-    console.log("rimosse" + this.listaNotifica);
-
   }
 }
