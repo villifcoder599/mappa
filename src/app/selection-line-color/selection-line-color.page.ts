@@ -7,33 +7,54 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SelectionLineColorPage implements OnInit {
   colors = [
-    { id: 0, val: 'verde', coding: "#00ff00" },
-    { id: 1, val: 'giallo', coding: "#ffff00" },
-    { id: 2, val: 'rosso', coding: "#ff0000" },
-    { id: 3, val: 'blu', coding: "#0000ff" },
-    { id: 4, val: 'viola', coding: "#800080" },
-    { id: 5, val: 'marrone', coding: "#a52a2a" },
-    { id: 6, val: 'nero', coding: "#000000" },
-    { id: 7, val: 'magenta', coding: "#ff00ff" },
-    { id: 8, val: 'rosa', coding: "#ff69b4" },
-    { id: 9, val: 'azzurro', coding: "#00ffff" },
-    { id: 10, val: 'nullo', coding: "undefinded" }
+    { val: 'verde', coding: "#00ff00" },
+    { val: 'giallo', coding: "#ffff00" },
+    { val: 'rosso', coding: "#ff0000" },
+    { val: 'blu', coding: "#0000ff" },
+    { val: 'viola', coding: "#800080" },
+    { val: 'marrone', coding: "#a52a2a" },
+    { val: 'nero', coding: "#000000" },
+    { val: 'magenta', coding: "#ff00ff" },
+    { val: 'rosa', coding: "#ff69b4" },
+    { val: 'azzurro', coding: "#00ffff" },
+    { val: 'nullo', coding: "undefinded" }
   ];
   colors_selected = [
-    {corsia:'A', id: 0, val: 'verde', coding: "#00ff00" },
-    {corsia:'B' ,id: 1, val: 'giallo', coding: "#ffff00" },
-    {corsia:'C' , id: 2, val: 'rosso', coding: "#ff0000" },
-  ]
-
-  constructor() { }
-
-  ngOnInit() {
+    { corsia: 'A', color: this.colors[0] },
+    { corsia: 'B', color: this.colors[1] },
+    { corsia: 'C1', color: this.colors[2] },
+    { corsia: 'C2', color: this.colors[10] },
+    { corsia: 'C6', color: this.colors[4] },
+    { corsia: 'C7', color: this.colors[3] }
+  ];
+  constructor() {
+  }
+  get_colors() {
+    this.load_data();
+    return this.colors_selected;
+  }
+  load_data() {
     if (window.localStorage.getItem("colors_selected") != null)
       this.colors_selected = JSON.parse(window.localStorage.getItem('colors_selected'));
   }
+  ngOnInit() {
+    this.load_data();
+    this.show_preview_legend();
+  }
   update_colors_selected() {
-    console.log(this.colors_selected);
     window.localStorage.setItem('colors_selected', JSON.stringify(this.colors_selected));
+    this.show_preview_legend();
   }
 
+
+  show_preview_legend() {
+    var element = document.getElementById('preview');
+    element.innerHTML = "";
+    for (var i = 0; i < this.colors_selected.length; i++) {
+      if (this.colors_selected[i].color.val != 'nullo')
+        element.innerHTML +=
+          '<div class="row"> <i class ="color" style="background:' + this.colors_selected[i].color.coding + '"></i> ' + '<p id="testo">' +
+          'Corsia ' + this.colors_selected[i].corsia + ' </p></div>';
+    }
+  }
 }
