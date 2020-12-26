@@ -28,12 +28,19 @@ import { TabsPage } from '../tabs/tabs.page';
   4.6)Mettere l'invia notifica nel codice al posto giusto OK
   4.7)check_street controlla il .tags che prob. non esiste OK
   5)Presentazione
-  5.1)Perfezionare requestAccuracy nel getPosition() (forse fatto ma ricontrolla)
+  5.1)__Perfezionare requestAccuracy nel getPosition() (forse fatto ma ricontrolla)
   5.2)Migliorare vista notifica con messaggio e data in basso a dx OK
   5.3)Inserire label info e dividere le impostazioni in gruppi Personalizza e Info OK
-  5.4)Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata
+  5.4)__Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata
   5.5)Aggiungere badge notifiche non lette OK
   5.6)Creare pagina dettagli corsie riservate e pagina attribuzioni(openstreetmap,etc)
+  5.65)Rivedere file .gpx (ho caricato le strade su openstreetmap) OK
+  5.66)Cambiare controllo delle strade riservate OK
+  5.7)Creare distinzione nel file .gpx delle corsie C1,C6,C7 OK
+  5.8)Aggiungere corsia C1,C6,C7(togliendo C) nella legenda e nella scelta colori di impostazioni OK
+  5.9)Fare preview legenda quando scelgo i colori OK
+  6.0)Riorganizza il codice (load_data_from_memory())[spostai metodi nelle classi giuste] OK
+  6.1)__Fix vista ion select (ion select radio button sfocata)
 */
 
 @Component({
@@ -42,8 +49,6 @@ import { TabsPage } from '../tabs/tabs.page';
   styleUrls: ['./mappa.page.scss'],
 })
 export class MappaPage {
-  unread;
-  colors_selected;
   legend;
   icon_map_view_selected = [{
     name: "globe"
@@ -62,9 +67,6 @@ export class MappaPage {
   accuracy = 20;
   degrees: number;
   myLine_layer = null;
-  custom_alert;
-  tags_name = ["bus_urb", "bus_extra", "hand", "taxi", "ncc", "pol_socc", "ff_armate", "mezzi_op", "autorizz", "deroga", "soccorso"];
-  autoriz_user = null;
   actual_layer = [];
   state_button_arrow = {
     color: "light",
@@ -99,8 +101,8 @@ export class MappaPage {
     this.platform.ready().then(() => {
       console.log("costruttore");
       //window.localStorage.clear();
-      //this.latlong = [43.7996269, 11.2438267];
-      this.latlong = [43.80867, 11.25101];
+      //this.latlong = [43.80867, 11.25101];
+      this.latlong = [43.79811, 11.24264];
       this.marker_circle = L.circleMarker(this.latlong, {
         radius: this.accuracy,
         stroke: false,
@@ -113,19 +115,16 @@ export class MappaPage {
         iconAnchor: [13, 13], // point of the icon which will correspond to marker's location
       });
       this.marker_position = L.marker(this.latlong, { icon: navIcon });
-      this.osm_id = 2361804077;
+      //this.osm_id = 2361804077;
       var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
       if ((tutorial != true)) {
         this.router.navigate(['/tutorial']);
       }
     })
-
-    //2361807728->autorizzato
-    //2361804077->non autorizzato
   }
-  ngOnDestroy() {
-    console.log("destroying child...");
-  }
+  // ngOnDestroy() {
+  //   console.log("destroying child...");
+  // }
   change_arrow_color() {
     switch (this.state_button_arrow.color) {
       case "light": {
@@ -138,7 +137,7 @@ export class MappaPage {
       }; break;
     }
   }
-  create_legend() {
+  create_legend(colors_selected) {
     if (this.legend == null)
       this.legend = new L.Control({ position: 'topright' });
     else
@@ -146,29 +145,27 @@ export class MappaPage {
     this.legend.onAdd = (() => {
       var div = L.DomUtil.create('div', 'info legend');
       // loop through our density intervals and generate a label with a colored square for each interval
-      for (var i = 0; i < this.colors_selected.length; i++) {
-        div.innerHTML +=
-          '<div class="row"> <i class ="color" style="background:' + this.colors_selected[i].coding + '"></i> ' + '<p id="testo">' +
-          'corsia ' + this.colors_selected[i].corsia + ' </p></div>';
+      for (var i = 0; i < colors_selected.length; i++) {
+        if (colors_selected[i].color.val != 'nullo')
+          div.innerHTML +=
+            '<div class="row"> <i class ="color" style="background:' + colors_selected[i].color.coding + '"></i> ' + '<p id="testo">' +
+            'corsia ' + colors_selected[i].corsia + ' </p></div>';
       }
       return div;
     })
     this.legend.addTo(this.map);
   }
-  open_tutorial() {
-    this.router.navigate(['/tutorial']);
-  }
-  ionViewDidEnter() {
 
-    this.load_data_from_memory();
+  ionViewDidEnter() {
     if (this.map == null) {
       this.initMap();
       this.enable_device_orientation();
-      this.create_legend();
       // this.getPosition();
     }
+    var map_colors=this.sel_line_color_page.get_colors();
     this.showMap();
-    this.draw_multilines();
+    this.create_legend(map_colors);
+    this.draw_multilines(map_colors);
   }
   requestAccuracy() {
     var ok = true;
@@ -194,28 +191,7 @@ export class MappaPage {
       }]
     }).then((alert) => alert.present());
   }
-  async show_alert() {
-    var div = '<div class="' + this.custom_alert.div_class + '">';
-    var icon = '<ion-icon name="' + this.custom_alert.ion_icon_name + '" class="' + this.custom_alert.ion_icon_class + '"></ion-icon>';
-    var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
-    var msg = this.custom_alert.ion_icon_name == '' ? msg = div + txt : msg = div + icon + txt;
-    var time = 100000;
-    this.alertController.create({
-      cssClass: this.custom_alert.css_class,
-      message: msg + (time + 1000) / 1000 + '</div></div>',
-    }).then((alert) => {
-      this.nativeAudio.play('notification_sound');
-      alert.present();
-      var intervall = setInterval(() => {
-        alert.message = msg + time / 1000 + '</div></div>';
-        if (time == 0) {
-          alert.remove();
-          clearInterval(intervall);
-        }
-        time = time - 1000;
-      }, time);
-    });
-  }
+
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
     this.go_next_map_view();
@@ -234,27 +210,8 @@ export class MappaPage {
       this.map.setView(this.latlong);
     }
   }
-  load_data_from_memory() {
-    this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
-    if (JSON.parse(window.localStorage.getItem('autoriz_user')) != null)
-      this.autoriz_user = JSON.parse(window.localStorage.getItem('autoriz_user'));
-    else {
-      this.autoriz_user = this.detailsPage.autoriz_user;
-      window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
-    }
-    if ((window.localStorage.getItem('listaNotifica')) != null)
-      this.notifica_page.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
-    else
-      this.notifica_page.listaNotifica = [];
-    this.custom_alert = JSON.parse(window.localStorage.getItem('selected_radio'));
-    if (window.localStorage.getItem("colors_selected") != null)
-      this.colors_selected = JSON.parse(window.localStorage.getItem('colors_selected'));
-    else
-      this.colors_selected = this.sel_line_color_page.colors_selected;
-    if (this.custom_alert == null)
-      this.custom_alert = this.custom_alert_page.selected_radio;
-  }
-  draw_multilines() {
+
+  draw_multilines(colors_selected) {
     fetch("assets/docs/geoJSON_corsie.geojson")
       .then((response) => response.json()).then((json) => {
         var count = 0;
@@ -263,10 +220,14 @@ export class MappaPage {
           this.map.removeLayer(this.myLine_layer);
         this.myLine_layer = L.geoJSON(json, {
           style: () => {
-            switch (json.features[count++].properties.name.tipo) {
-              case 'A': return { color: this.colors_selected[0].coding, opacity: opacity_value };
-              case 'B': return { color: this.colors_selected[1].coding, opacity: opacity_value };
-              case 'C': return { color: this.colors_selected[2].coding, opacity: opacity_value };
+            switch (json.features[count++].properties.name.ide_corsia.split('0')[0]) {
+              case 'A': return { color: colors_selected[0].color.coding, opacity: opacity_value };
+              case 'B': return { color: colors_selected[1].color.coding, opacity: opacity_value };
+              case 'C1': return { color: colors_selected[2].color.coding, opacity: opacity_value };
+              case 'C2': return { color: colors_selected[3].color.coding, opacity: opacity_value };
+              case 'C6': return { color: colors_selected[4].color.coding, opacity: opacity_value };
+              case 'C7': return { color: colors_selected[5].color.coding, opacity: opacity_value };
+              default: return { color: undefined };
             }
           }
         }).addTo(this.map);
@@ -328,52 +289,35 @@ export class MappaPage {
     }
   }
   reverse_coords() {
-    /*setInterval(() => {
-      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1])
+    setInterval(() => {
+      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1')
         .then((response) => response.json())
         .then((json) => {
           if (this.osm_id != json.osm_id) {
             this.osm_id = json.osm_id;
-            this.check_street(json.address.road);
+            this.check_street(json);
           }
         })
-    }, 5000);*/
+    }, 5000);
   }
-  check_street(road) {
-    fetch("assets/docs/corsie_riservate.gpx").then(res => res.json()).then(json => {
-      var find_corsia = this.find_corsia_riservata(json.corsie_riservate);
-      if (find_corsia[0]) {
-        if (!this.check_autorizzazione(json.corsie_riservate[find_corsia[1]].tags)) {
-          var date = new Date();
-          this.notifica_page.addNotifica('Sei transitato in ' + road + ', corsia di tipo ' + json.corsie_riservate[find_corsia[1]].tipo, date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + '  ' + date.getHours() + ':' + date.getMinutes());
-          this.show_alert();
+  check_street(json) {
+    if (json.extratags.description != undefined) {
+      var tags = json.extratags.description.split(';');
+      if (tags.length > 10) {
+        var authoriz_user=this.detailsPage.get_authorization_user();
+        console.log(authoriz_user);
+        for (var i = 4; i < 15; i++) {
+          if (authoriz_user[i - 4].isChecked == false && (tags[i].split(':')[1] == '1' || tags[i].split(':')[1] == '-1')) {
+            // this.show_alert();
+            this.custom_alert_page.show_alert();
+            this.notifica_page.create_notifica(json.address.road, tags[1].split(':')[1].split('0')[0]);
+            i = 15;
+          }
         }
       }
-    });
-  }
-  //confronto strada che sto percorrendo con database corsie_riservate
-  find_corsia_riservata(corsie_riservate) {
-    var m = 0, l = 0, r = corsie_riservate.length;
-    while (l <= r) {
-      m = ((l + r) / 2) >> 0; //cancello il resto
-      if (corsie_riservate[m].pk_corsia == this.osm_id)
-        return [true, m];
-      if (corsie_riservate[m].pk_corsia < this.osm_id)
-        l = m + 1;
-      else
-        r = m - 1;
     }
-    return false;
   }
-  //cerco se l'utente ha un autorizzazione per la corsia riservata
-  check_autorizzazione(tags = []) {
-    var found = false;
-    for (var i = 0; i < tags.length && !found; i++) {
-      if (this.autoriz_user[i].isChecked && tags[this.autoriz_user[i].id] == 1)
-        found = true;
-    }
-    return found;
-  }
+
   //Ruota marker_position in base a dove punta il telefono
   enable_device_orientation() {
     this.deviceOrientation.watchHeading().subscribe(
@@ -384,12 +328,8 @@ export class MappaPage {
     );
   }
 
-  notifica() {
-    console.log("send notifica");
-    var data;
-    var ora = new Date();
-    data = (ora.getDate() + '/' + (ora.getMonth() + 1) + '/' + ora.getFullYear() + '  ' + ora.getHours() + ':' + ora.getMinutes());
-    this.notifica_page.addNotifica("Sei transitato in Viale Gaetano Pieraccini, corsia di tipo C", data);
-    this.tabsPage.update_badge();
+  send_notifica(){
+    this.notifica_page.create_notifica("Via Prova", "B");
   }
+  
 }
