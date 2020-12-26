@@ -22,18 +22,26 @@ export class DetailsPage {
     { id: 'soccorso', val: 'Soccorso', isChecked: false }
   ];
   constructor() {
-
   }
   ionViewDidEnter() {
-    var app=JSON.parse(window.localStorage.getItem('autoriz_user'));
-    console.log(this.autoriz_user);
-      for (var i = 0; i < app.length; i++) {
-        if(app[i].isChecked)
-          this.autoriz_user[i].isChecked = true;
-      }
+    this.load_data();
   }
   update_data(event) {
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
-    console.log(event);
+  }
+  get_authorization_user() {
+    this.load_data();
+    return this.autoriz_user;
+  }
+  load_data() {
+    var app = JSON.parse(window.localStorage.getItem('autoriz_user'));
+    if (app != undefined) {
+      for (var i = 0; i < app.length; i++) {
+        if (app[i].isChecked)
+          this.autoriz_user[i].isChecked = true;
+      }
+    }
+    else
+      this.autoriz_user=app;
   }
 }
