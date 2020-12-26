@@ -7,7 +7,8 @@ import { IonicModule } from '@ionic/angular';
 import { CustomAlertPageRoutingModule } from './custom-alert-routing.module';
 
 import { CustomAlertPage } from './custom-alert.page';
-
+import { NativeAudio } from '@ionic-native/native-audio/ngx';
+import { AlertController, IonRadioGroup } from '@ionic/angular'
 @NgModule({
   imports: [
     CommonModule,
@@ -15,6 +16,7 @@ import { CustomAlertPage } from './custom-alert.page';
     IonicModule,
     CustomAlertPageRoutingModule
   ],
-  declarations: [CustomAlertPage]
+  declarations: [CustomAlertPage],
+  providers:[NativeAudio,AlertController,IonRadioGroup]
 })
 export class CustomAlertPageModule {}
