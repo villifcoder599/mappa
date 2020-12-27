@@ -41,7 +41,5 @@ export class DetailsPage {
           this.autoriz_user[i].isChecked = true;
       }
     }
-    else
-      this.autoriz_user=app;
   }
 }
