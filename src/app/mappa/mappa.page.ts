@@ -16,7 +16,6 @@ import { NotificaPage } from '../notifica/notifica.page';
 import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 import { DetailsPage } from '../details/details.page';
 import { TabsPage } from '../tabs/tabs.page';
-
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cap build android --prod per il problema della velocita dell'app
@@ -42,7 +41,9 @@ import { TabsPage } from '../tabs/tabs.page';
   6.0)Riorganizza il codice (load_data_from_memory())[spostai metodi nelle classi giuste] OK
   6.1)__Fix vista ion select (ion select radio button sfocata) OK (su telefono)
   6.2)Non carica la selezione delle autorizz. sul telefono  OK
-  6.3)Invece di preview legend spostare colore a sx della label corsia + ingrandire e stondare i bottoni
+  6.3)Invece di preview legend spostare colore a sx della label corsia + ingrandire e stondare i bottoni (idea)
+  6.35)Provare a ordinare codice css (spostarlo nelle varie pagine)
+  6.4)Non funziona alert sonoro
 */
 
 @Component({
@@ -331,7 +332,7 @@ export class MappaPage {
   }
 
   send_notifica(){
-    this.notifica_page.create_notifica("Via Prova", "B");
+    this.notifica_page.create_notifica("Via", "B");
   }
   show_alert(){
     this.custom_alert_page.show_alert();

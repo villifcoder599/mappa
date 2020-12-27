@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
 import { Geolocation } from '@ionic-native/geolocation/ngx'
 import { HttpClientModule } from '@angular/common/http';
@@ -22,7 +22,6 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 import { CustomAlertPageRoutingModule } from '../custom-alert/custom-alert-routing.module';
 import { DetailsPage } from '../details/details.page';
 import { DetailsPageRoutingModule } from '../details/details-routing.module';
-
 @NgModule({
   imports: [
     CommonModule,
@@ -34,10 +33,11 @@ import { DetailsPageRoutingModule } from '../details/details-routing.module';
     SelectionLineColorPageRoutingModule,
     NotificaPageRoutingModule,
     CustomAlertPageRoutingModule,
-    DetailsPageRoutingModule
+    DetailsPageRoutingModule,
+
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
     AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,CustomAlertPage,DetailsPage],
-  declarations: [MappaPage]
+  declarations: [MappaPage],
 })
 export class MappaPageModule { }

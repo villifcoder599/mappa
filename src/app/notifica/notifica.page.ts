@@ -28,7 +28,10 @@ export class NotificaPage{
     this.tabsPage.update_badge();
   }
   addNotifica(txt, date) {
-    this.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
+    if(JSON.parse(window.localStorage.getItem('listaNotifica'))!=undefined)
+      this.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
+    else
+      this.listaNotifica=[];
     this.listaNotifica.push({ text: txt, date: date });
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
   }

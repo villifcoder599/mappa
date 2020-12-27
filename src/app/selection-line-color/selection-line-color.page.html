@@ -8,7 +8,7 @@
 </ion-header>
 
 <ion-content>
-  <div id="#container_options">
+  <div id="container_opt">
   <ion-item *ngFor="let entry of colors_selected; let i = index">
     <ion-label>Colore corsia {{colors_selected[i].corsia}}</ion-label>
     <ion-select selectedText="{{colors_selected[i].color.val}}" [(ngModel)]="colors_selected[i].color"

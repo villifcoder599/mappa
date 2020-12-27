@@ -1,0 +1,30 @@
+ion-content,ion-header{
+    --ion-background-color:#eeeeee;
+}
+ion-item{
+    --ion-background-color:#fff;
+    border-radius: 20px;
+    margin:3px 9px;
+}
+ion-item-option{
+    margin:4px 0;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    margin-right: 9px;
+    padding-left: 70%;
+}
+//notifica
+#notifica{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 10px 0;
+}
+#notifica .text_label{
+    align-self: flex-start;
+    font: 500 18px Roboto, "Helvetica Neue", sans-serif;
+}
+#notifica .date_label{
+    align-self: flex-end;
+    font: 150 10px Roboto, "Helvetica Neue", sans-serif;
+}

@@ -24,31 +24,39 @@
 @import "~@ionic/angular/css/text-alignment.css";
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
-
+//colore del punto esclamativo dell'alert divieto,quadrato
 .alert{
     font-size: 85px;
     color:#ff0000;
 }
-#alert-1-msg{
-    text-align: center;
-    padding:0;
+
+
+// #alert-1-msg{
+//     text-align: center;
+//     padding:0;
+// }
+// #alert-2-msg{
+//     padding: 0;
+// }
+
+//stile dell'alert custom "default"
+.alert-wrapper.ion-overlay-wrapper.sc-ion-alert-md{
+    border-radius: 15px;
 }
-#alert-2-msg{
-    padding: 0;
-}
+//stile dell'alert "quadrato"
 .rounded-2-class .alert-wrapper.sc-ion-alert-md{
     border: 15px solid #488AFF; 
     width: 0;
     border-radius: 12%;
 }
-
+//stile dell'alert "Divieto accesso"
 .rounded-red-class .alert-wrapper.sc-ion-alert-md{
     border-radius: 100%;
     border:15px solid #ff0000;
 
 }
 .container .alert-wrapper.sc-ion-alert-md{
-    border:15px solid #ff0000;
+border:15px solid #ff0000;
    position: relative;
    width: 275px;
    padding-top: 255px; 
@@ -60,6 +68,9 @@
 .container .alert-button-group{
     padding: 0;
 }
+.container .alert-message{
+    padding: 0;
+}
 .text{
    position:  absolute;
    top: 36px;
@@ -68,6 +79,7 @@
    right: 0;
    text-align: center;
 }
+//messaggio degli alert
 .msg_custom{
     font: 500 18px Roboto, "Helvetica Neue", sans-serif;
     color: #000;
@@ -79,9 +91,7 @@
 .msg_custom .sub_msg{
     font-weight: 150;
 }
-#ion-fab-button .map-button{
-    margin-top: 5px;
-  }
+//legenda
 #myMap .legend {
     line-height: 18px;
     color: #555;
@@ -89,13 +99,13 @@
     margin:4px;
     border-radius: 9px;
 }
-
 .row{
     display: flex;
     flex-direction: row;
     padding: 0px 5px;
-}
-.color{
+    width: fit-content;
+  }
+  .color{
     flex: auto;
     width: 18px;
     max-width: 18px;
@@ -104,74 +114,21 @@
     height: 11px;
     align-self: center;
     border-radius: 5px;
-}
-.legend .row #testo{
+  }
+  .legend .row #testo{
     margin: 0px;
     align-self: center;
     padding-left: 3px;
-}
-.container .alert-message{
-    padding: 0;
-}
-#notifica{
+  }
+//preview legenda
+#preview{
     display: flex;
     flex-direction: column;
-    width: 100%;
-}
-#notifica .text_label{
-    align-self: flex-start;
-    font: 500 18px Roboto, "Helvetica Neue", sans-serif;
-}
-#notifica .date_label{
-    align-self: flex-end;
-    font: 150 10px Roboto, "Helvetica Neue", sans-serif;
-}
-ion-slides {
-    height: 100%;
-  }
-ion-slides  .swiper-slide {
-    display: block;
-  }
-
-ion-slides  .swiper-slide h2 {
-    margin-top: 0.8rem;
-  }
-
-ion-slides  .swiper-slide  {
-    max-height: 100%;
-    max-width: 100%;
-    margin: 50px 0 0px;
-    pointer-events: none;
-  }
-ion-slides .slide-1 img{
-    max-height: 66%;
-    max-width: 66%;
-}
-ion-slides .slide-2 img{
-    max-height: 100%;
-    max-width: 100%;
-}
-
-
-ion-slides  b {
-    font-weight: 500;
-  }
-
-ion-slides  p {
-    padding: 0 40px;
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--ion-color-step-600, #60646b);
-  }
-
-ion-slides p b {
-    color: var(--ion-text-color, #000000);
-  }
-
-ion-item-divider {
-    background-color: #808080;
-    color: #fff;
-    height: 32px;
+    margin: auto;
+    border: 1px;
+    border-radius: 10%;
+    border: 1px solid;
+    background-color: #fff;
 }
 #preview p#testo{
     display: flex;
@@ -182,4 +139,37 @@ ion-item-divider {
 #preview .color{
     height: 15px;
     width: 30px;
+}
+//stile generale
+ion-item-divider {
+    background-color: #808080;
+    color: #fff;
+    height: 32px;
+    border-radius: 20px;
+}
+ion-content,ion-header{
+    --ion-background-color:#eeeeee;
+}
+ion-item{
+    --ion-background-color:#fff;
+    border-radius: 20px;
+    margin:3px 9px;
+}
+ion-toolbar{
+    color: #000;
+    align-self: center;
+    height: 65px;
+    display: flex;
+    font-weight: 600;
+}
+ion-title{
+    display: flex;
+}
+ion-header{
+    display: flex;
+    //padding: 6px;
+}
+ion-title{
+    display: flex;
+    font-size: 23px;
 }

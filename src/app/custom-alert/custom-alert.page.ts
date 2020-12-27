@@ -67,7 +67,7 @@ export class CustomAlertPage {
     var icon = '<ion-icon name="' + this.selected_radio.ion_icon_name + '" class="' + this.selected_radio.ion_icon_class + '"></ion-icon>';
     var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
     var msg = this.selected_radio.ion_icon_name == '' ? msg = div + txt : msg = div + icon + txt;
-    var time = 1000;
+    var time = 100000;
     this.alertController.create({
       cssClass: this.selected_radio.css_class,
       message: msg + (time + 1000) / 1000 + '</div></div>',

@@ -5,17 +5,29 @@
     margin-top: 50px;
 }
 
-#preview{
-    display: flex;
-    flex-direction: column;
-    margin: auto;
-    border: 1px;
-    border-radius: 10%;
-    border: 1px solid;
-}
-.row{
-    width: fit-content;
-}
-ion-content,ion-header{
-    --ion-background-color:#F0EBEB;
-}
+
+// ion-content,ion-header{
+//     --ion-background-color:#eeeeee;
+// }
+// ion-item{
+//     --ion-background-color:#fff;
+//     border-radius: 20px;
+//     margin:3px 9px;
+// }
+// #container_opt{
+//     margin-top: 13px;
+// }
+// ion-toolbar{
+//     color: #000;
+// }
+// ion-title{
+//     display: flex;
+// }
+// ion-toolbar{
+//     display: flex;
+//     height: 65px;
+// }
+// ion-title{
+//     display: flex;
+//     font-size: 23px;
+// }
