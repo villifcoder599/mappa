@@ -31,16 +31,18 @@ import { TabsPage } from '../tabs/tabs.page';
   5.1)__Perfezionare requestAccuracy nel getPosition() (forse fatto ma ricontrolla)
   5.2)Migliorare vista notifica con messaggio e data in basso a dx OK
   5.3)Inserire label info e dividere le impostazioni in gruppi Personalizza e Info OK
-  5.4)__Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata
+  5.4)__Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata OK
   5.5)Aggiungere badge notifiche non lette OK
   5.6)Creare pagina dettagli corsie riservate e pagina attribuzioni(openstreetmap,etc)
   5.65)Rivedere file .gpx (ho caricato le strade su openstreetmap) OK
   5.66)Cambiare controllo delle strade riservate OK
   5.7)Creare distinzione nel file .gpx delle corsie C1,C6,C7 OK
   5.8)Aggiungere corsia C1,C6,C7(togliendo C) nella legenda e nella scelta colori di impostazioni OK
-  5.9)Fare preview legenda quando scelgo i colori OK
+  5.9)Fare preview legenda e alert quando scelgo i settaggi OK
   6.0)Riorganizza il codice (load_data_from_memory())[spostai metodi nelle classi giuste] OK
-  6.1)__Fix vista ion select (ion select radio button sfocata)
+  6.1)__Fix vista ion select (ion select radio button sfocata) OK (su telefono)
+  6.2)Non carica la selezione delle autorizz. sul telefono  OK
+  6.3)Invece di preview legend spostare colore a sx della label corsia + ingrandire e stondare i bottoni
 */
 
 @Component({
@@ -331,5 +333,7 @@ export class MappaPage {
   send_notifica(){
     this.notifica_page.create_notifica("Via Prova", "B");
   }
-  
+  show_alert(){
+    this.custom_alert_page.show_alert();
+  }
 }
