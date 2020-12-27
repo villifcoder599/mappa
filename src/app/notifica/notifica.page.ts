@@ -8,12 +8,10 @@ import { TabsPage } from '../tabs/tabs.page';
 })
 export class NotificaPage{
   @ViewChild('listone') lista: IonList;
-  count=0;
   listaNotifica = [];
   constructor(private tabsPage: TabsPage, private platform: Platform) {
     this.platform.ready().then(() => {
       this.listaNotifica = JSON.parse(localStorage.getItem('listaNotifica'));
-      this.count=this.listaNotifica.length;
     })
   }
 
