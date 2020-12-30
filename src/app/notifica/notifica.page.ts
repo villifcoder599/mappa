@@ -12,7 +12,6 @@ export class NotificaPage{
   @ViewChild('listone') lista: IonList;
   listaNotifica = [];
   constructor(private tabsPage: TabsPage, private platform: Platform) {
-    
     this.platform.ready().then(() => {
       this.listaNotifica = JSON.parse(localStorage.getItem('listaNotifica'));
     })
