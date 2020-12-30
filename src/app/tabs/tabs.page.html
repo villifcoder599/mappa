@@ -1,0 +1,21 @@
+<ion-tabs>
+
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button tab="mappa">
+      <ion-icon name="map"></ion-icon>
+      <ion-label>Mappa</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="notifica">
+      <ion-badge *ngIf="unread>0" color="danger">{{unread}}</ion-badge>
+      <ion-icon name="notifications"></ion-icon>
+      <ion-label>Notifiche</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="impostazioni">
+      <ion-icon name="settings"></ion-icon>
+      <ion-label>Impostazioni</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+
+</ion-tabs>
