@@ -1,0 +1,184 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "~@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "~@ionic/angular/css/normalize.css";
+@import "~@ionic/angular/css/structure.css";
+@import "~@ionic/angular/css/typography.css";
+@import '~@ionic/angular/css/display.css';
+
+/* Optional CSS utils that can be commented out */
+@import "~@ionic/angular/css/padding.css";
+@import "~@ionic/angular/css/float-elements.css";
+@import "~@ionic/angular/css/text-alignment.css";
+@import "~@ionic/angular/css/text-transformation.css";
+@import "~@ionic/angular/css/flex-utils.css";
+//colore del punto esclamativo dell'alert divieto,quadrato
+.alert{
+    font-size: 85px;
+    color:#ff0000;
+}
+
+
+// #alert-1-msg{
+//     text-align: center;
+//     padding:0;
+// }
+// #alert-2-msg{
+//     padding: 0;
+// }
+
+//stile dell'alert custom "default"
+.alert-wrapper.ion-overlay-wrapper.sc-ion-alert-md{
+    border-radius: 15px;
+}
+//stile dell'alert "quadrato"
+.rounded-2-class .alert-wrapper.sc-ion-alert-md{
+    border: 15px solid #488AFF; 
+    width: 0;
+    border-radius: 12%;
+}
+//stile dell'alert "Divieto accesso"
+.rounded-red-class .alert-wrapper.sc-ion-alert-md{
+    border-radius: 100%;
+    border:15px solid #ff0000;
+
+}
+.container .alert-wrapper.sc-ion-alert-md{
+border:15px solid #ff0000;
+   position: relative;
+   width: 275px;
+   padding-top: 255px; 
+   border-radius:100%
+}
+.container .alert-head{
+    padding:0;
+}
+.container .alert-button-group{
+    padding: 0;
+}
+.container .alert-message{
+    padding: 0;
+}
+.text{
+   position:  absolute;
+   top: 36px;
+   left: 0;
+   bottom: 0;
+   right: 0;
+   text-align: center;
+}
+//messaggio degli alert
+.msg_custom{
+    font: 500 18px Roboto, "Helvetica Neue", sans-serif;
+    color: #000;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+}
+.msg_custom .sub_msg{
+    font-weight: 150;
+}
+//legenda
+#myMap .legend {
+    line-height: 18px;
+    color: #555;
+    background-color: #fff;
+    margin:4px;
+    border-radius: 9px;
+}
+.row{
+    display: flex;
+    flex-direction: row;
+    padding: 0px 5px;
+    width: fit-content;
+  }
+  .color{
+    flex: auto;
+    width: 18px;
+    max-width: 18px;
+    float: left;
+    opacity: 0.7;
+    height: 11px;
+    align-self: center;
+    border-radius: 5px;
+  }
+  .legend .row #testo{
+    margin: 0px;
+    align-self: center;
+    padding-left: 3px;
+  }
+//preview legenda
+#preview{
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    border: 1px;
+    border-radius: 10%;
+    border: 1px solid;
+    background-color: #fff;
+}
+#preview p#testo{
+    display: flex;
+    margin: 4px;
+    font-size: 25px;
+    white-space: nowrap;
+}
+#preview .color{
+    height: 15px;
+    width: 30px;
+}
+//stile generale
+ion-item-divider {
+    background-color: #808080;
+    color: #fff;
+    height: 32px;
+    border-radius: 20px;
+    margin: 13px 0px 2px;
+}
+ion-content,ion-header{
+    --ion-background-color:#eeeeee;
+}
+ion-item{
+    --ion-background-color:#fff;
+    border-radius: 20px;
+    margin:3px 9px;
+    
+}
+ion-toolbar{
+    color: #000;
+    align-self: center;
+    height: 65px;
+    display: flex;
+    font-weight: 600;
+}
+ion-title{
+    display: flex;
+}
+ion-header{
+    display: flex;
+    //padding: 6px;
+}
+ion-title{
+    display: flex;
+    font-size: 23px;
+}
+ion-content ion-label{
+    margin: 17px 0px;
+   
+}
+
+//SECTION-NOTIFICA
+//notifica

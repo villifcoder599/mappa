@@ -1,0 +1,10 @@
+{
+  "name": "test_mappa",
+  "integrations": {
+    "capacitor": {
+      "enabled": false
+    },
+    "cordova": {}
+  },
+  "type": "angular"
+}

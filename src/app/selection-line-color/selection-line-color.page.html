@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Seleziona colore linee</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div id="container_opt">
+  <ion-item lines="none" *ngFor="let entry of colors_selected; let i = index">
+    <ion-label>Colore corsia {{colors_selected[i].corsia}}</ion-label>
+    <ion-select selectedText="{{colors_selected[i].color.val}}" [(ngModel)]="colors_selected[i].color"
+      (ionChange)="update_colors_selected()">
+      <ion-select-option *ngFor="let color of colors" [value]="color">{{color.val}}</ion-select-option>
+    </ion-select>
+  </ion-item>
+  </div>
+  <div id="container">
+    <div id="preview">
+
+    </div>
+  </div>
+
+</ion-content>

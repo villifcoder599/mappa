@@ -1,0 +1,53 @@
+#container {
+    text-align: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  #container strong {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  
+  #container p {
+    font-size: 16px;
+    line-height: 22px;
+  
+    color: #8c8c8c;
+  
+    margin: 0;
+  }
+  
+  #container a {
+    text-decoration: none;
+  }
+  #myMap{
+    height: 90%;
+    width: 100%;
+  }
+  #controller{
+    display: block;
+    align-items: center;
+  }
+  .bottom_right{
+    position: absolute;
+    bottom:0;
+    right: 0;
+    padding: 10px;
+  }
+  .mat-icon{
+    align-items: center;
+  }
+  #myMap .map-button{
+    margin-top: 5px;
+  }
+  //bottoni legenda
+#ion-fab-button .map-button{
+  margin-top: 5px;
+}
+
+
+  

@@ -1,0 +1,18 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Autorizzazioni</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content>
+  <ion-list lines="none">
+    <ion-item *ngFor="let entry of autoriz_user" (click)="update_data(entry)">
+      <ion-label>{{entry.val}}</ion-label>
+      <ion-checkbox slot="end" [(ngModel)]="entry.isChecked"></ion-checkbox>
+    </ion-item>
+  </ion-list>
+</ion-content>
