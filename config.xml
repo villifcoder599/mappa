@@ -26,7 +26,7 @@
     <preference name="LottieAutoHideSplashScreen" value="true" />
     <preference name="LottieLoopAnimation" value="true" />
     <preference name="LottieFullScreen" value="true" />
-    <preference name="LottieFadeOutDuration" value="2500" />
+    <preference name="LottieFadeOutDuration" value="1000" />
     <preference name="LottieBackgroundColor" value="#004980D6" />
     <preference name="SplashScreenDelay" value="0" />
     <platform name="android">
