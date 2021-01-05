@@ -16,9 +16,10 @@ import { NotificaPage } from '../notifica/notifica.page';
 import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 import { DetailsPage } from '../details/details.page';
 import { TabsPage } from '../tabs/tabs.page';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
-  1.1)ionic cap build android --prod per il problema della velocita dell'app
+  1.1)ionic cordova run android --prod per il problema della velocita dell'app
   3)Colorare in base alle autorizzazioni corsie riservate OK
   4)Qualche alert e notifiche per personalizzare OK
   4.1)Fix dragStart dragEnd OK
@@ -43,7 +44,8 @@ import { TabsPage } from '../tabs/tabs.page';
   6.2)Non carica la selezione delle autorizz. sul telefono  OK
   6.3)Non funziona alert sonoro OK
   6.4)Bug visivo sullo scorrimento del cancellamento notifica OK
-  6.5)Animazione cancello notifica
+  6.5)Animazione cancello notifica OK
+  6.6)Inserire searchbox in alto per ricercare le strade (?)
 */
 
 @Component({
@@ -100,9 +102,9 @@ export class MappaPage {
     }
   }];
 
-  constructor(private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+  constructor(private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
-      console.log("costruttore");var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
+      console.log("costruttore"); var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
       if ((tutorial != true)) {
         this.router.navigate(['/tutorial']);
       }
@@ -164,35 +166,48 @@ export class MappaPage {
       this.enable_device_orientation();
       // this.getPosition();
     }
-    var map_colors=this.sel_line_color_page.get_colors();
+    var map_colors = this.sel_line_color_page.get_colors();
     this.showMap();
     this.create_legend(map_colors);
     this.draw_multilines(map_colors);
   }
-  requestAccuracy() {
-    var ok = true;
-    this.locationAccuracy.canRequest().then((canRequest: boolean) => {
-      if (canRequest) {
-        // the accuracy option will be ignored by iOS
-        this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(() => { }, () => ok = false);
-      }
-      else { this.location_enable_manually("Richiesta di attivazione localizzazione rifiutata"); }
-    });
-    return ok;
-  }
-  location_enable_manually(message) {
-    this.alertController.create({
-      header: message,
-      buttons: [{
-        text: 'Annulla'
-      }, {
-        text: 'Apri impostazioni',
-        handler: () => {
-          this.diagnostic.switchToLocationSettings();
+  //richiesta permesso accesso al gps
+  checkGPSPermission() {
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_COARSE_LOCATION).then(
+      result => {
+        if (result.hasPermission) {
+          this.askToTurnOnGPS();
+        } else {
+          this.requestGPSPermission();
         }
-      }]
-    }).then((alert) => alert.present());
+      },
+      err => {
+        alert(err);
+      }
+    );
   }
+  requestGPSPermission() {
+    this.locationAccuracy.canRequest().then((canRequest: boolean) => {
+      if (!canRequest) {
+        this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.ACCESS_COARSE_LOCATION)
+          .then(
+            () => {
+              this.askToTurnOnGPS();
+            },
+            error => {
+              alert('Permesso negato ' + error)
+            }
+          );
+      }
+    });
+  }
+  askToTurnOnGPS() {
+    this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(
+      () => {},
+      error => alert('Errore richiesta permesso ' + JSON.stringify(error))
+    );
+  }
+
 
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
@@ -253,42 +268,37 @@ export class MappaPage {
   go_next_map_view() {
     var count = 0;
     this.baseMaps[this.count_map_view_selected].layer.forEach(element => {
-      // console.log(element);
       this.actual_layer[count++] = L.tileLayer(element, this.baseMaps[this.count_map_view_selected].options).addTo(this.map);
     });
   }
   showMap() {
-    /*L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);*/
-    //this.change_view_map();
     this.watch_Position();
     this.reverse_coords();
     this.marker_circle.addTo(this.map);
     this.marker_position.addTo(this.map);
   }
   watch_Position() {
-    // this.requestAccuracy();
-    // navigator.geolocation.watchPosition((position => {
-    //   this.latlong = [position.coords.latitude, position.coords.longitude];
-    //   this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
-    //   this.geolocation.getCurrentPosition;
-    //   this.marker_position.setLatLng(this.latlong);
-    //   this.marker_circle.setLatLng(this.latlong);
-    //   this.marker_circle.setRadius(this.accuracy);
-    //   if (this.focus_on_marker)
-    //     this.map.setView(this.latlong);
-    // }), ((error) => {
-    //   this.requestAccuracy();
-    //   //alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
-    // }), { enableHighAccuracy: true });
+     this.checkGPSPermission();
+     navigator.geolocation.watchPosition((position => {
+       this.latlong = [position.coords.latitude, position.coords.longitude];
+       this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
+       this.geolocation.getCurrentPosition;
+       this.marker_position.setLatLng(this.latlong);
+       this.marker_circle.setLatLng(this.latlong);
+       this.marker_circle.setRadius(this.accuracy);
+       if (this.focus_on_marker)
+         this.map.setView(this.latlong);
+     }), ((error) => {
+       this.checkGPSPermission();
+       //alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
+     }), { enableHighAccuracy: true });
   }
   getPosition() {
-    if (this.requestAccuracy()) {
-      this.change_arrow_color();
-      this.map.setView(this.latlong, this.map.getZoom() < 16 ? 19 : this.map.getZoom());
-      this.focus_on_marker = true;
-    }
+    this.checkGPSPermission();
+    this.change_arrow_color();
+    this.map.setView(this.latlong, this.map.getZoom() < 16 ? 19 : this.map.getZoom());
+    this.focus_on_marker = true;
+
   }
   reverse_coords() {
     setInterval(() => {
@@ -306,11 +316,10 @@ export class MappaPage {
     if (json.extratags.description != undefined) {
       var tags = json.extratags.description.split(';');
       if (tags.length > 10) {
-        var authoriz_user=this.detailsPage.get_authorization_user();
+        var authoriz_user = this.detailsPage.get_authorization_user();
         console.log(authoriz_user);
         for (var i = 4; i < 15; i++) {
           if (authoriz_user[i - 4].isChecked == false && (tags[i].split(':')[1] == '1' || tags[i].split(':')[1] == '-1')) {
-            // this.show_alert();
             this.nativeAudio.play('notification_sound');
             this.custom_alert_page.show_alert();
             this.notifica_page.create_notifica(json.address.road, tags[1].split(':')[1].split('0')[0]);
@@ -331,10 +340,10 @@ export class MappaPage {
     );
   }
 
-  send_notifica(){
+  send_notifica() {
     this.notifica_page.create_notifica("Via", "B");
   }
-  show_alert(){
+  show_alert() {
     //this.nativeAudio.play('notification_sound');
     this.custom_alert_page.show_alert();
   }
