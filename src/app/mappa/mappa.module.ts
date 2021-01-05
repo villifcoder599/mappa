@@ -22,6 +22,7 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 import { CustomAlertPageRoutingModule } from '../custom-alert/custom-alert-routing.module';
 import { DetailsPage } from '../details/details.page';
 import { DetailsPageRoutingModule } from '../details/details-routing.module';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 @NgModule({
   imports: [
     CommonModule,
@@ -37,7 +38,8 @@ import { DetailsPageRoutingModule } from '../details/details-routing.module';
 
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
-    AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,CustomAlertPage,DetailsPage],
+    AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,
+    CustomAlertPage,DetailsPage,AndroidPermissions],
   declarations: [MappaPage],
 })
 export class MappaPageModule { }
