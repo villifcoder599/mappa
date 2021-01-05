@@ -45,7 +45,8 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
   6.3)Non funziona alert sonoro OK
   6.4)Bug visivo sullo scorrimento del cancellamento notifica OK
   6.5)Animazione cancello notifica OK
-  6.6)Inserire searchbox in alto per ricercare le strade (?)
+  6.6)Inserire searchbox in alto per ricercare le strade e simulazione percorso
+  6.7)Controllare differenza tra pol_soccorso e soccorso
 */
 
 @Component({
