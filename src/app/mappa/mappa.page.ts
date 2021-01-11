@@ -45,8 +45,13 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
   6.3)Non funziona alert sonoro OK
   6.4)Bug visivo sullo scorrimento del cancellamento notifica OK
   6.5)Animazione cancello notifica OK
-  6.6)Inserire searchbox in alto per ricercare le strade e simulazione percorso
+  6.6)Inserire searchbox in alto per ricercare le strade OK
+  6.65) Searchbox scompare con swipe in alto
   6.7)Controllare differenza tra pol_soccorso e soccorso
+  6.8)Per rendere dinamico l'aggiornamento confrontare ide_corsia del json con ide_corsia del pdf 
+      sul sito di Firenze con l'elenco delle corsie riservate
+  6.9)Simulazione percorso per testare funzionamento
+  6.10)Searbox più grande? (se sì fare come google maps)
 */
 
 @Component({
@@ -55,7 +60,10 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
   styleUrls: ['./mappa.page.scss'],
 })
 export class MappaPage {
+  timeout;
   legend;
+  addresses = [];
+  selectedAddress = null;
   icon_map_view_selected = [{
     name: "globe"
   }, {
@@ -105,6 +113,7 @@ export class MappaPage {
 
   constructor(private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
+      this.addresses.length = 0;
       console.log("costruttore"); var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
       if ((tutorial != true)) {
         this.router.navigate(['/tutorial']);
@@ -160,7 +169,43 @@ export class MappaPage {
     })
     this.legend.addTo(this.map);
   }
+  search(event) {
+    this.addresses=[];
+    if (this.timeout != null)
+      clearTimeout(this.timeout)
+    this.timeout = setTimeout(() => {
+      this.search_word(event);
+    }, 800);
+  }
+  search_word(event) {
+    var query = event.target.value.toLowerCase();
+    console.log(query.length)
+    if (query.length > 0) {
+      console.log(query)
+      fetch("https://photon.komoot.io/api?q=" + query + "&limit=6")
+        .then(response => response.json())
+        .then((json) => {
+          console.log(json)
+          var txt;
+          for (var i=0; i < 6; i++) {
+            txt = (json.features[i].properties.name != undefined ? json.features[i].properties.name + ',' : '') +
+              (json.features[i].properties.city != undefined ? json.features[i].properties.city + ',' : '') +
+              (json.features[i].properties.state != undefined ? json.features[i].properties.state + ',' : '') +
+              (json.features[i].properties.country != undefined ? json.features[i].properties.country : '');
+            if(i==0 || txt != this.addresses[i - 1])
+              this.addresses.push(txt);
+          }
+        })
+    }
+    else {
+      this.addresses = [];
+    }
+  }
 
+  onSelect(address) {
+    this.selectedAddress = address;
+    this.addresses = [];
+  }
   ionViewDidEnter() {
     if (this.map == null) {
       this.initMap();
@@ -172,7 +217,7 @@ export class MappaPage {
     this.create_legend(map_colors);
     this.draw_multilines(map_colors);
   }
-  //richiesta permesso accesso al gps
+  //controllo permesso accesso al gps
   checkGPSPermission() {
     this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_COARSE_LOCATION).then(
       result => {
@@ -204,11 +249,10 @@ export class MappaPage {
   }
   askToTurnOnGPS() {
     this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(
-      () => {},
+      () => { },
       error => alert('Errore richiesta permesso ' + JSON.stringify(error))
     );
   }
-
 
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
@@ -231,7 +275,8 @@ export class MappaPage {
 
   draw_multilines(colors_selected) {
     fetch("assets/docs/geoJSON_corsie.geojson")
-      .then((response) => response.json()).then((json) => {
+      .then((response) => response.json())
+      .then((json) => {
         var count = 0;
         var opacity_value = 0.7;
         if (this.myLine_layer != null) //remove old layer
@@ -260,8 +305,7 @@ export class MappaPage {
     if (this.actual_layer.length != 0) {
       this.actual_layer.forEach(element => {
         this.map.removeLayer(element);
-      }
-      )
+      })
       this.count_map_view_selected = (this.count_map_view_selected + 1) % this.baseMaps.length; //in this pos. to syncro icon_map_viw and basemap
     }
     this.go_next_map_view();
@@ -279,20 +323,20 @@ export class MappaPage {
     this.marker_position.addTo(this.map);
   }
   watch_Position() {
-     this.checkGPSPermission();
-     navigator.geolocation.watchPosition((position => {
-       this.latlong = [position.coords.latitude, position.coords.longitude];
-       this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
-       this.geolocation.getCurrentPosition;
-       this.marker_position.setLatLng(this.latlong);
-       this.marker_circle.setLatLng(this.latlong);
-       this.marker_circle.setRadius(this.accuracy);
-       if (this.focus_on_marker)
-         this.map.setView(this.latlong);
-     }), ((error) => {
-       this.checkGPSPermission();
-       //alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
-     }), { enableHighAccuracy: true });
+    this.checkGPSPermission();
+    navigator.geolocation.watchPosition((position => {
+      this.latlong = [position.coords.latitude, position.coords.longitude];
+      this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
+      this.geolocation.getCurrentPosition;
+      this.marker_position.setLatLng(this.latlong);
+      this.marker_circle.setLatLng(this.latlong);
+      this.marker_circle.setRadius(this.accuracy);
+      if (this.focus_on_marker)
+        this.map.setView(this.latlong);
+    }), ((error) => {
+      this.checkGPSPermission();
+      //alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
+    }), { enableHighAccuracy: true });
   }
   getPosition() {
     this.checkGPSPermission();
