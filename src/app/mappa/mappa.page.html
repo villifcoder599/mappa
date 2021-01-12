@@ -3,9 +3,9 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div id="myMap">
+  <div id="myMap" (click)="onClickMap()">
     
-      <ion-searchbar id="searchbar" placeholder="Cerca" (ionInput)="search($event)" [value]="selectedAddress.name">
+      <ion-searchbar #searchbar id="searchbar" placeholder="Cerca" (ionInput)="search($event)" [value]="selectedAddress.name" (ionClear)="onCancel()">
       </ion-searchbar>
     
     <div id="search-list">
