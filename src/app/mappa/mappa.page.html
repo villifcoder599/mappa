@@ -5,14 +5,14 @@
 <ion-content [fullscreen]="true">
   <div id="myMap">
     
-      <ion-searchbar id="searchbar" placeholder="Cerca" (ionInput)="search($event)" [value]="selectedAddress">
+      <ion-searchbar id="searchbar" placeholder="Cerca" (ionInput)="search($event)" [value]="selectedAddress.name">
       </ion-searchbar>
     
     <div id="search-list">
       <ion-list id="list_items" lines="none">
         <ion-item button *ngFor="let address of addresses" (click)="onSelect(address)">
           <ion-icon name="pin"></ion-icon>
-          <ion-label>{{address}}</ion-label>
+          <ion-label>{{address.name}}</ion-label>
         </ion-item>
       </ion-list>
     </div>
