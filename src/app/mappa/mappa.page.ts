@@ -61,9 +61,16 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 })
 export class MappaPage {
   timeout;
+  pin_search;
   legend;
-  addresses = [];
-  selectedAddress = null;
+  addresses = [{
+    name: '',
+    coords: []
+  }];
+  selectedAddress = {
+    name: '',
+    coords: []
+  };
   icon_map_view_selected = [{
     name: "globe"
   }, {
@@ -170,7 +177,7 @@ export class MappaPage {
     this.legend.addTo(this.map);
   }
   search(event) {
-    this.addresses=[];
+    this.addresses = [];
     if (this.timeout != null)
       clearTimeout(this.timeout)
     this.timeout = setTimeout(() => {
@@ -182,29 +189,47 @@ export class MappaPage {
     console.log(query.length)
     if (query.length > 0) {
       console.log(query)
-      fetch("https://photon.komoot.io/api?q=" + query + "&limit=6")
+      fetch("https://photon.komoot.io/api?q=" + query + "&limit=8" + '&osm_tag=highway')
         .then(response => response.json())
         .then((json) => {
           console.log(json)
           var txt;
-          for (var i=0; i < 6; i++) {
-            txt = (json.features[i].properties.name != undefined ? json.features[i].properties.name + ',' : '') +
-              (json.features[i].properties.city != undefined ? json.features[i].properties.city + ',' : '') +
-              (json.features[i].properties.state != undefined ? json.features[i].properties.state + ',' : '') +
-              (json.features[i].properties.country != undefined ? json.features[i].properties.country : '');
-            if(i==0 || txt != this.addresses[i - 1])
-              this.addresses.push(txt);
+          var j = 0;
+          for (var i = 0; i < json.features.length; i++) {
+            if (json.features[i].properties != undefined) {
+              txt = (json.features[i].properties.name != undefined ? json.features[i].properties.name + ',' : '') +
+                (json.features[i].properties.city != undefined ? json.features[i].properties.city + ',' : '') +
+                (json.features[i].properties.county != undefined && json.features[i].properties.county != json.features[i].properties.city ? json.features[i].properties.county + ',' : '') +
+                (json.features[i].properties.state != undefined ? json.features[i].properties.state + ',' : '') +
+                (json.features[i].properties.country != undefined ? json.features[i].properties.country : '');
+              if (this.addresses.map(function (e) { return e.name; }).indexOf(txt) == -1) {
+                this.addresses[j] = {
+                  name: txt,
+                  coords: [json.features[i].geometry.coordinates[1], json.features[i].geometry.coordinates[0]]
+                }
+                j++;
+              }
+            }
           }
         })
     }
     else {
       this.addresses = [];
     }
+    console.log(this.addresses)
   }
 
   onSelect(address) {
     this.selectedAddress = address;
     this.addresses = [];
+    this.set_Pin_Marker();
+  }
+  set_Pin_Marker() {
+    if (this.pin_search != null)
+      this.map.removeLayer(this.pin_search);
+    this.map.setView(this.selectedAddress.coords, 17);
+    console.log(this.selectedAddress);
+    this.pin_search = L.marker([this.selectedAddress.coords[0], this.selectedAddress.coords[1]]).addTo(this.map);
   }
   ionViewDidEnter() {
     if (this.map == null) {
@@ -346,16 +371,16 @@ export class MappaPage {
 
   }
   reverse_coords() {
-    setInterval(() => {
-      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1')
-        .then((response) => response.json())
-        .then((json) => {
-          if (this.osm_id != json.osm_id) {
-            this.osm_id = json.osm_id;
-            this.check_street(json);
-          }
-        })
-    }, 5000);
+    // setInterval(() => {
+    //   fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1')
+    //     .then((response) => response.json())
+    //     .then((json) => {
+    //       if (this.osm_id != json.osm_id) {
+    //         this.osm_id = json.osm_id;
+    //         this.check_street(json);
+    //       }
+    //     })
+    // }, 5000);
   }
   check_street(json) {
     if (json.extratags.description != undefined) {
