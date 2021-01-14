@@ -17,7 +17,7 @@ import { CustomAlertPage } from '../custom-alert/custom-alert.page';
 import { DetailsPage } from '../details/details.page';
 import { TabsPage } from '../tabs/tabs.page';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
-import { Gesture, GestureController } from '@ionic/angular';
+import { GestureController } from '@ionic/angular';
 
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
@@ -41,7 +41,7 @@ import { Gesture, GestureController } from '@ionic/angular';
   5.7)Creare distinzione nel file .gpx delle corsie C1,C6,C7 OK
   5.8)Aggiungere corsia C1,C6,C7(togliendo C) nella legenda e nella scelta colori di impostazioni OK
   5.9)Fare preview legenda e alert quando scelgo i settaggi OK
-  6.0)Riorganizza il codice (load_data_from_memory())[spostai metodi nelle classi giuste] OK
+  6.0)Riorganizza il codice (load_data_from_memory())[spostare metodi nelle classi giuste] OK
   6.1)__Fix vista ion select (ion select radio button sfocata) OK (su telefono)
   6.2)Non carica la selezione delle autorizz. sul telefono  OK
   6.3)Non funziona alert sonoro OK
@@ -50,10 +50,10 @@ import { Gesture, GestureController } from '@ionic/angular';
   6.6)Inserire searchbox in alto per ricercare le strade OK
   6.65) Searchbox scompare con swipe in alto OK
   6.7)Controllare differenza tra pol_soccorso e soccorso (soccorso o 0 o -1) OK
-  6.8)Per rendere dinamico l'aggiornamento confrontare ide_corsia del json con ide_corsia del pdf 
+  6.8)Simulazione percorso per testare funzionamento OK
+  6.9)Searbox più grande? (se sì fare come google maps con animazioni)
+  6.10)Per rendere dinamico l'aggiornamento confrontare ide_corsia del json con ide_corsia del pdf 
       sul sito di Firenze con l'elenco delle corsie riservate
-  6.9)Simulazione percorso per testare funzionamento
-  6.10)Searbox più grande? (se sì fare come google maps)
 */
 
 @Component({
@@ -61,9 +61,9 @@ import { Gesture, GestureController } from '@ionic/angular';
   templateUrl: './mappa.page.html',
   styleUrls: ['./mappa.page.scss'],
 })
-export class MappaPage{
-  @ViewChild('searchbar', { read: ElementRef }) searchbar:ElementRef;
-  animation_click_searchbox=0;
+export class MappaPage {
+  @ViewChild('searchbar', { read: ElementRef }) searchbar: ElementRef;
+  animation_click_searchbox = 0;
   timeout;
   pin_search;
   legend;
@@ -88,7 +88,7 @@ export class MappaPage{
   marker_circle: any;
   marker_position: any;
   latlong: any;
-  osm_id = 0;
+  ide_corsia = 0;
   accuracy = 20;
   degrees: number;
   myLine_layer = null;
@@ -121,8 +121,11 @@ export class MappaPage{
       maxZoom: 19,
     }
   }];
-
-  constructor(private gestureCtrl:GestureController,private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+  percorso;
+  count_percorso = 0;
+  test_marker;
+  records_coords;
+  constructor(private gestureCtrl: GestureController, private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
       this.addresses.length = 0;
       console.log("costruttore"); var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
@@ -131,54 +134,73 @@ export class MappaPage{
       }
       //window.localStorage.clear();
       //this.latlong = [43.80867, 11.25101];
-      this.latlong = [43.79811, 11.24264];
+      this.latlong = [43.798245080028536,11.24322352064662];
       this.marker_circle = L.circleMarker(this.latlong, {
         radius: this.accuracy,
         stroke: false,
         color: '#1275ff',
       });
-      var icon_path = 'https://cdn3.iconfinder.com/data/icons/glypho-travel/64/gps-navi-arrow-512.png';
+      var icon_path,icon_size,iconAnchor
+      if(!this.platform.is('desktop')){
+        icon_path = 'https://cdn3.iconfinder.com/data/icons/glypho-travel/64/gps-navi-arrow-512.png';
+        icon_size=[26,26];
+        iconAnchor=[icon_size[0]/2,icon_size[1]/2]
+      }
+      else{
+        icon_path='https://medall.in/assets/img/map/current_marker_full.png';
+        icon_size=[26,34.6];
+        iconAnchor=[icon_size[0]/2,icon_size[1]/2];
+      }
       var navIcon = L.icon({
         iconUrl: icon_path,
-        iconSize: [26, 26], // size of the icon
-        iconAnchor: [13, 13], // point of the icon which will correspond to marker's location
+        iconSize: icon_size, // size of the icon
+        iconAnchor: iconAnchor, // point of the icon which will correspond to marker's location
       });
       this.marker_position = L.marker(this.latlong, { icon: navIcon });
+
       //this.osm_id = 2361804077;
     })
   }
-  ngAfterViewInit(){
+  ngAfterViewInit() {
     const moveGesture = this.gestureCtrl.create({
       el: this.searchbar.nativeElement,
       threshold: 10,
-      direction:'y',
+      direction: 'y',
       gestureName: 'swipe_bottom-up',
-      onStart: (ev) => {this.onStart()},
+      onStart: (ev) => { this.onStart() },
     });
     moveGesture.enable(true);
+    fetch('assets/docs/prova.txt').then((response) => response.json()).then((json) => {
+      this.percorso = json.coordinates;
+      console.log(this.percorso)
+    })
+
   }
-  private onStart(){
-    if(!this.animation_click_searchbox){
+  keyDown(event) {
+    console.log(event)
+  }
+  private onStart() {
+    if (!this.animation_click_searchbox) {
       console.log(this.searchbar.nativeElement);
-      this.searchbarAnimation(this.searchbar.nativeElement.offsetTop,-this.searchbar.nativeElement.offsetHeight-5);
-      this.animation_click_searchbox=1;
+      this.searchbarAnimation(this.searchbar.nativeElement.offsetTop, -this.searchbar.nativeElement.offsetHeight - 5);
+      this.animation_click_searchbox = 1;
       //this.searchbar.nativeElement.offsetTop-=5;
     }
   }
-  onClickMap(){
+  onClickMap() {
     console.log(this.searchbar)
-    if(this.animation_click_searchbox){
-      this.searchbarAnimation(-this.searchbar.nativeElement.offsetHeight-5,0);
-      this.animation_click_searchbox=0;
+    if (this.animation_click_searchbox) {
+      this.searchbarAnimation(-this.searchbar.nativeElement.offsetHeight - 5, 0);
+      this.animation_click_searchbox = 0;
       //this.searchbar.nativeElement.offsetTop+=5;
     }
   }
-  searchbarAnimation(start,end){
-    const animation=createAnimation();
-      animation.addElement(this.searchbar.nativeElement)
+  searchbarAnimation(start, end) {
+    const animation = createAnimation();
+    animation.addElement(this.searchbar.nativeElement)
       .easing('ease').duration(300)
-      .fromTo('transform', 'translateY('+start+'px)', 'translateY('+end+'px)');    
-      animation.play();
+      .fromTo('transform', 'translateY(' + start + 'px)', 'translateY(' + end + 'px)');
+    animation.play();
   }
   change_arrow_color() {
     switch (this.state_button_arrow.color) {
@@ -212,7 +234,8 @@ export class MappaPage{
   }
   search(event) {
     this.addresses = [];
-    this.animation_click_searchbox=1;
+    //console.log("change");
+    this.animation_click_searchbox = 0;
     if (this.timeout != null)
       clearTimeout(this.timeout)
     this.timeout = setTimeout(() => {
@@ -224,7 +247,7 @@ export class MappaPage{
     console.log(query.length)
     if (query.length > 0) {
       console.log(query)
-      fetch("https://photon.komoot.io/api?q=" + query + "&limit=8" + '&osm_tag=highway')
+      fetch("https://photon.komoot.de/api?q=" + query + "&limit=8" + '&osm_tag=highway')
         .then(response => response.json())
         .then((json) => {
           console.log(json)
@@ -259,9 +282,10 @@ export class MappaPage{
     this.addresses = [];
     this.set_Pin_Marker();
   }
-  onCancel(){
-    this.animation_click_searchbox=1;
-    if(this.pin_search!=null)
+  onCancel() {
+    //console.log("cancel")
+    this.animation_click_searchbox = 0;
+    if (this.pin_search != null)
       this.map.removeLayer(this.pin_search);
   }
   set_Pin_Marker() {
@@ -276,6 +300,7 @@ export class MappaPage{
       this.enable_device_orientation();
       // this.getPosition();
     }
+
     var map_colors = this.sel_line_color_page.get_colors();
     this.showMap();
     this.create_legend(map_colors);
@@ -319,12 +344,18 @@ export class MappaPage{
   }
 
   initMap() {
+
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
     this.go_next_map_view();
     this.map.on('dragstart', function () {
       this.focus_on_marker = false;
     });
     this.map.on('dragend', (event) => this.drag_end_event(event));
+    var draggable = new L.Draggable(this.marker_position);
+    draggable.enable();
+    this.marker_position.on('drag', () => {
+      console.log("dragEvent")
+    })
     // var myLayer=L.geoJSON().addTo(this.map);
   }
   drag_end_event(event) {
@@ -335,6 +366,32 @@ export class MappaPage{
     if (this.state_button_arrow.state) {
       this.map.setView(this.latlong);
     }
+  }
+  crea_Strada() {
+    this.test_marker.addEventListener('drag', (e) => {
+      this.records_coords += '[' + e.latlng['lat'] + ',' + e.latlng['lng'] + ']' + ',';
+      console.log(this.records_coords);
+    })
+  }
+  metti_Marker(){
+    this.test_marker = new L.Marker(this.latlong, { draggable: true }).addTo(this.map);
+  }
+  simula_percorso() {
+    var simulazione = setInterval(() => {
+      if (this.count_percorso < this.percorso.length) {
+        if(this.count_percorso>500 && this.count_percorso<3500)
+          this.count_percorso+=12;
+        else
+          this.count_percorso+=4;
+        this.latlong = this.percorso[this.count_percorso++];
+        console.log(this.count_percorso);
+      }
+      else{
+        clearInterval(simulazione);
+        this.count_percorso=0;
+      }
+      this.fake_gps();
+    }, 50)
   }
 
   draw_multilines(colors_selected) {
@@ -386,6 +443,14 @@ export class MappaPage{
     this.marker_circle.addTo(this.map);
     this.marker_position.addTo(this.map);
   }
+  fake_gps() {
+    this.marker_position.setLatLng(this.latlong);
+    this.marker_circle.setLatLng(this.latlong);
+    this.marker_circle.setRadius(this.accuracy);
+    if (this.focus_on_marker)
+      this.map.setView(this.latlong);
+
+  }
   watch_Position() {
     // this.checkGPSPermission();
     // navigator.geolocation.watchPosition((position => {
@@ -407,35 +472,39 @@ export class MappaPage{
     this.change_arrow_color();
     this.map.setView(this.latlong, this.map.getZoom() < 16 ? 19 : this.map.getZoom());
     this.focus_on_marker = true;
-    
+
   }
   reverse_coords() {
-     setInterval(() => {
-       fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1')
-         .then((response) => response.json())
-         .then((json) => {
-           if (this.osm_id != json.osm_id) {
-             this.osm_id = json.osm_id;
-             this.check_street(json);
-           }
-         })
-     }, 5000);
+    // setInterval(() => {
+    //   fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1')
+    //     .then((response) => response.json())
+    //     .then((json) => {
+    //       console.log(json.address.road+'\n');
+    //       console.log(json)
+    //       //console.log(json.address.road+" des"+json.extratags.description)
+    //       if (json.extratags.description != undefined) {
+    //         var tags = json.extratags.description.split(';');
+    //         if (tags.length > 10) {
+    //           var new_idee = tags[1].split(':')[1];
+    //           if (new_idee != this.ide_corsia) {
+    //             this.ide_corsia = new_idee;
+    //             this.check_street(tags, json.address.road);
+    //           }
+    //         }
+    //       }
+    //     })
+    // }, 4000);
   }
-  check_street(json) {
-    if (json.extratags.description != undefined) {
-      var tags = json.extratags.description.split(';');
-      if (tags.length > 10) {
-        var authoriz_user = this.detailsPage.get_authorization_user();
-        console.log(authoriz_user);
-        console.log(tags);
-        for (var i = 4; i < 15; i++) {
-          if (authoriz_user[i - 4].isChecked == false && tags[i].split(':')[1] != '0') {
-            this.nativeAudio.play('notification_sound');
-            this.custom_alert_page.show_alert();
-            this.notifica_page.create_notifica(json.address.road, tags[1].split(':')[1].split('0')[0]);
-            i = 15;
-          }
-        }
+  check_street(tags, address) {
+    var authoriz_user = this.detailsPage.get_authorization_user();
+    console.log(authoriz_user);
+    console.log(tags);
+    for (var i = 4; i < 15; i++) {
+      if (authoriz_user[i - 4].isChecked == false && tags[i].split(':')[1] != '0') {
+        this.nativeAudio.play('notification_sound');
+        this.custom_alert_page.show_alert();
+        this.notifica_page.create_notifica(address, tags[1].split(':')[1].split('0')[0]);
+        i = 15;
       }
     }
   }

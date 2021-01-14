@@ -2,10 +2,10 @@
 
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" >
   <div id="myMap" (click)="onClickMap()">
     
-      <ion-searchbar #searchbar id="searchbar" placeholder="Cerca" (ionInput)="search($event)" [value]="selectedAddress.name" (ionClear)="onCancel()">
+      <ion-searchbar #searchbar id="searchbar" placeholder="Cerca" [value]="selectedAddress.name" (ionChange)="search($event)" (ionClear)="onCancel()">
       </ion-searchbar>
     
     <div id="search-list">
@@ -28,5 +28,7 @@
   <ion-button (click)="show_alert()">Show Alert</ion-button>
   <ion-button (click)="send_notifica()">Invia notifica</ion-button>
   <ion-button (click)="countLayers()">Count layer</ion-button>
-
+  <ion-button (click)="crea_Strada()">Crea Percorso</ion-button>
+  <ion-button (click)="simula_percorso()">Simula Percorso</ion-button>
+  <ion-button (click)="metti_Marker()">Metti marker</ion-button>
 </ion-content>

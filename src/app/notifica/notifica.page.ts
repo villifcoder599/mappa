@@ -26,7 +26,7 @@ export class NotificaPage{
     var data;
     var ora = new Date();
     data = (ora.getDate() + '/' + (ora.getMonth() + 1) + '/' + ora.getFullYear() + '  ' + ora.getHours() + ':' + ora.getMinutes());
-    this.addNotifica("Sei transitato in " + nome + ' ,corsia di tipo ' + tipo, data);
+    this.addNotifica("Sei transitato in " + nome + ', corsia di tipo ' + tipo, data);
     this.tabsPage.update_badge();
   }
   addNotifica(txt, date) {

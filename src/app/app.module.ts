@@ -27,4 +27,6 @@ import { LottieSplashScreen } from '@ionic-native/lottie-splash-screen/ngx';
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule {
+  
+}

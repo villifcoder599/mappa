@@ -23,6 +23,8 @@ import { CustomAlertPageRoutingModule } from '../custom-alert/custom-alert-routi
 import { DetailsPage } from '../details/details.page';
 import { DetailsPageRoutingModule } from '../details/details-routing.module';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-native/file-transfer/ngx';
+import { File } from '@ionic-native/file/ngx';
 @NgModule({
   imports: [
     CommonModule,
@@ -39,7 +41,7 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
     AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,
-    CustomAlertPage,DetailsPage,AndroidPermissions],
+    CustomAlertPage,DetailsPage,AndroidPermissions,File,FileTransfer,FileTransferObject],
   declarations: [MappaPage],
 })
 export class MappaPageModule { }
