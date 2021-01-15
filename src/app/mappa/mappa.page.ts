@@ -51,19 +51,22 @@ import { GestureController } from '@ionic/angular';
   6.65) Searchbox scompare con swipe in alto OK
   6.7)Controllare differenza tra pol_soccorso e soccorso (soccorso o 0 o -1) OK
   6.8)Simulazione percorso per testare funzionamento OK
-  6.9)Searbox più grande? (se sì fare come google maps con animazioni)
+  6.9)Searbox più grande? (se sì fare come google maps con animazioni) MANCA VEDERE GRANDEZZA SEACRHBOX
   6.10)Per rendere dinamico l'aggiornamento confrontare ide_corsia del json con ide_corsia del pdf 
       sul sito di Firenze con l'elenco delle corsie riservate
 */
-
 @Component({
   selector: 'app-mappa',
   templateUrl: './mappa.page.html',
   styleUrls: ['./mappa.page.scss'],
 })
 export class MappaPage {
-  @ViewChild('searchbar', { read: ElementRef }) searchbar: ElementRef;
+  @ViewChild('searchbar', { read: ElementRef }) searchbar_element: ElementRef;
+  @ViewChild('map', { read: ElementRef }) map_element: ElementRef;
+  @ViewChild('ion_input', { read: ElementRef }) ion_input_element: ElementRef;
+  icon_name_searchbar="search";
   animation_click_searchbox = 0;
+  delta_searchbar = 105;
   timeout;
   pin_search;
   legend;
@@ -134,22 +137,22 @@ export class MappaPage {
       }
       //window.localStorage.clear();
       //this.latlong = [43.80867, 11.25101];
-      this.latlong = [43.798245080028536,11.24322352064662];
+      this.latlong = [43.798245080028536, 11.24322352064662];
       this.marker_circle = L.circleMarker(this.latlong, {
         radius: this.accuracy,
         stroke: false,
         color: '#1275ff',
       });
-      var icon_path,icon_size,iconAnchor
-      if(!this.platform.is('desktop')){
+      var icon_path, icon_size, iconAnchor
+      if (!this.platform.is('desktop')) {
         icon_path = 'https://cdn3.iconfinder.com/data/icons/glypho-travel/64/gps-navi-arrow-512.png';
-        icon_size=[26,26];
-        iconAnchor=[icon_size[0]/2,icon_size[1]/2]
+        icon_size = [26, 26];
+        iconAnchor = [icon_size[0] / 2, icon_size[1] / 2]
       }
-      else{
-        icon_path='https://medall.in/assets/img/map/current_marker_full.png';
-        icon_size=[26,34.6];
-        iconAnchor=[icon_size[0]/2,icon_size[1]/2];
+      else {
+        icon_path = 'https://medall.in/assets/img/map/current_marker_full.png';
+        icon_size = [26, 34.6];
+        iconAnchor = [icon_size[0] / 2, icon_size[1] / 2];
       }
       var navIcon = L.icon({
         iconUrl: icon_path,
@@ -163,7 +166,7 @@ export class MappaPage {
   }
   ngAfterViewInit() {
     const moveGesture = this.gestureCtrl.create({
-      el: this.searchbar.nativeElement,
+      el: this.searchbar_element.nativeElement,
       threshold: 10,
       direction: 'y',
       gestureName: 'swipe_bottom-up',
@@ -176,31 +179,66 @@ export class MappaPage {
     })
 
   }
-  keyDown(event) {
-    console.log(event)
-  }
+
   private onStart() {
-    if (!this.animation_click_searchbox) {
-      console.log(this.searchbar.nativeElement);
-      this.searchbarAnimation(this.searchbar.nativeElement.offsetTop, -this.searchbar.nativeElement.offsetHeight - 5);
-      this.animation_click_searchbox = 1;
+    if (this.animation_click_searchbox) {
+      console.log(this.searchbar_element.nativeElement);
+      this.searchbarAnimation(this.searchbar_element.nativeElement.offsetTop, -this.searchbar_element.nativeElement.offsetHeight - 5);
+      this.animation_click_searchbox = 0;
       //this.searchbar.nativeElement.offsetTop-=5;
     }
   }
   onClickMap() {
-    console.log(this.searchbar)
-    if (this.animation_click_searchbox) {
-      this.searchbarAnimation(-this.searchbar.nativeElement.offsetHeight - 5, 0);
-      this.animation_click_searchbox = 0;
+    console.log(this.searchbar_element)
+    if (!this.animation_click_searchbox) {
+      this.searchbarAnimation(-this.searchbar_element.nativeElement.offsetHeight - 5, 0);
+      this.animation_click_searchbox = 1;
       //this.searchbar.nativeElement.offsetTop+=5;
     }
   }
   searchbarAnimation(start, end) {
     const animation = createAnimation();
-    animation.addElement(this.searchbar.nativeElement)
+    animation.addElement(this.searchbar_element.nativeElement)
       .easing('ease').duration(300)
       .fromTo('transform', 'translateY(' + start + 'px)', 'translateY(' + end + 'px)');
     animation.play();
+  }
+  icon_searchbar_onBack(){
+    if(this.icon_name_searchbar=='arrow-back'){
+      this.addresses=[];
+      this.ion_input_element.nativeElement.setBlur();
+      this.show_map_onBack();
+    }
+  }
+  async hide_map_onclick() {
+    this.icon_name_searchbar='arrow-back';
+    this.animation_click_searchbox = 0;
+    this.searchbar_element.nativeElement.style.position='relative';
+    var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
+    // console.log(margin_right);
+    this.mapAnimation(0, this.map_element.nativeElement.offsetHeight,
+      this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth + this.delta_searchbar - margin_right * 2);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    //this.map_element.nativeElement.style.display='none';
+  }
+  show_map_onBack() {
+    this.animation_click_searchbox = 1;
+    this.icon_name_searchbar='search';
+    this.searchbar_element.nativeElement.style.position='absolute';
+    var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
+    this.mapAnimation(this.map_element.nativeElement.offsetHeight, 0,
+      this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth - this.delta_searchbar + margin_right*2);
+  }
+  mapAnimation(start, end, width_start, width_end) {
+    var map_animation = createAnimation().addElement(this.map_element.nativeElement)
+      .easing('ease').duration(500)
+      .fromTo('transform', 'translateY(' + start + 'px)', 'translateY(' + end + 'px)');
+    var search_animation = createAnimation().addElement(this.searchbar_element.nativeElement)
+      .easing('ease').duration(500)
+      .fromTo('width', width_start + 'px', width_end + 'px');
+    console.log(this.searchbar_element);
+    map_animation.play();
+    search_animation.play();
   }
   change_arrow_color() {
     switch (this.state_button_arrow.color) {
@@ -232,9 +270,10 @@ export class MappaPage {
     })
     this.legend.addTo(this.map);
   }
+
   search(event) {
     this.addresses = [];
-    //console.log("change");
+    console.log("change");
     this.animation_click_searchbox = 0;
     if (this.timeout != null)
       clearTimeout(this.timeout)
@@ -247,7 +286,7 @@ export class MappaPage {
     console.log(query.length)
     if (query.length > 0) {
       console.log(query)
-      fetch("https://photon.komoot.de/api?q=" + query + "&limit=8" + '&osm_tag=highway')
+      fetch("https://photon.komoot.io/api?q=" + query + "&limit=10" + '&osm_tag=highway&&lat=43.80867&lon=11.25101')
         .then(response => response.json())
         .then((json) => {
           console.log(json)
@@ -278,12 +317,15 @@ export class MappaPage {
   }
 
   onSelect(address) {
+    this.show_map_onBack();
     this.selectedAddress = address;
     this.addresses = [];
     this.set_Pin_Marker();
   }
   onCancel() {
-    //console.log("cancel")
+    console.log("cancel");
+    this.addresses=[];
+    this.ion_input_element.nativeElement.value=''
     this.animation_click_searchbox = 0;
     if (this.pin_search != null)
       this.map.removeLayer(this.pin_search);
@@ -373,22 +415,22 @@ export class MappaPage {
       console.log(this.records_coords);
     })
   }
-  metti_Marker(){
+  metti_Marker() {
     this.test_marker = new L.Marker(this.latlong, { draggable: true }).addTo(this.map);
   }
   simula_percorso() {
     var simulazione = setInterval(() => {
       if (this.count_percorso < this.percorso.length) {
-        if(this.count_percorso>500 && this.count_percorso<3500)
-          this.count_percorso+=12;
+        if (this.count_percorso > 500 && this.count_percorso < 3500)
+          this.count_percorso += 12;
         else
-          this.count_percorso+=4;
+          this.count_percorso += 4;
         this.latlong = this.percorso[this.count_percorso++];
         console.log(this.count_percorso);
       }
-      else{
+      else {
         clearInterval(simulazione);
-        this.count_percorso=0;
+        this.count_percorso = 0;
       }
       this.fake_gps();
     }, 50)
