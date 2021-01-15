@@ -64,6 +64,8 @@ export class MappaPage {
   @ViewChild('searchbar', { read: ElementRef }) searchbar_element: ElementRef;
   @ViewChild('map', { read: ElementRef }) map_element: ElementRef;
   @ViewChild('ion_input', { read: ElementRef }) ion_input_element: ElementRef;
+  enabled_big_searchbar=0;
+  duration_animation_map=400;
   icon_name_searchbar = "search";
   enabled_animation_click_searchbox = 0;
   enabled_ionChange_searchbox = 1;
@@ -132,6 +134,7 @@ export class MappaPage {
   records_coords;
   constructor(private gestureCtrl: GestureController, private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
+      console.log('costruttore');
       this.addresses.length = 0;
       var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
       if ((tutorial != true)) {
@@ -205,40 +208,48 @@ export class MappaPage {
   icon_searchbar_onBack() {
     if (this.icon_name_searchbar == 'arrow-back' && !this.wait_animation) {//!this.enabled_animation_click_searchbox && 
       this.addresses = [];
+      this.enabled_big_searchbar=0;
       this.ion_input_element.nativeElement.setBlur();
-      console.log('blur');
+      this.set_searchbox_value({name:"",coords:[]})
       this.show_map_onBack();
     }
   }
-  hide_map_onclick() {
-    if (!this.wait_animation) {
+  async hide_map_onclick() {
+    console.log('wait_animation '+this.wait_animation);
+    console.log('big_search '+this.enabled_big_searchbar)
+    if (!this.wait_animation && !this.enabled_big_searchbar) {
       this.icon_name_searchbar = 'arrow-back';
+      this.enabled_big_searchbar=1;
       this.enabled_animation_click_searchbox = 0;
       this.searchbar_element.nativeElement.style.position = 'relative';
       var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
       this.mapAnimation(0, this.map_element.nativeElement.offsetHeight,
         this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth + this.delta_searchbar - margin_right * 2);
+      await new Promise((resolve) => setTimeout(resolve, this.duration_animation_map+10));
+      this.map_element.nativeElement.style.display = 'none';
     }
     else
-      this.ion_input_element.nativeElement.setBlur();
+      if(this.wait_animation)
+        this.ion_input_element.nativeElement.setBlur();
   }
   show_map_onBack() {
+    this.map_element.nativeElement.style.display = 'block';
     this.enabled_animation_click_searchbox = 1;
     this.icon_name_searchbar = 'search';
     this.searchbar_element.nativeElement.style.position = 'absolute';
     var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
     this.mapAnimation(this.map_element.nativeElement.offsetHeight, 0,
       this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth - this.delta_searchbar + margin_right * 2);
-    //await new Promise((resolve) => setTimeout(resolve, 600));
+    
   }
   mapAnimation(start, end, width_start, width_end) {
     {
       this.wait_animation = 1;
       var map_animation = createAnimation().addElement(this.map_element.nativeElement)
-        .easing('ease').duration(500)
+        .easing('ease').duration(this.duration_animation_map)
         .fromTo('transform', 'translateY(' + start + 'px)', 'translateY(' + end + 'px)');
       var search_animation = createAnimation().addElement(this.searchbar_element.nativeElement)
-        .easing('ease').duration(500)
+        .easing('ease').duration(this.duration_animation_map)
         .fromTo('width', width_start + 'px', width_end + 'px');
       map_animation.play();
       search_animation.play().then(() =>
@@ -295,9 +306,12 @@ export class MappaPage {
       this.enabled_ionChange_searchbox = 1;
   }
   search_word(event) {
-    var query = event.target.value.toLowerCase();
+    var query = event.target.value;
+    console.log(query)
+    console.log(query.length);
     if (query.length > 0) {
-      fetch("https://photon.komoot.io/api?q=" + query + "&limit=10" + '&osm_tag=highway&&lat=43.80867&lon=11.25101')
+      query=query.toLowerCase();
+      fetch("https://photon.komoot.io/api?q=" + query + "&limit=11" + '&osm_tag=highway&&lat=43.80867&lon=11.25101')
         .then(response => response.json())
         .then((json) => {
           var txt;
@@ -326,20 +340,23 @@ export class MappaPage {
   }
 
   onSelect(address) {
+    this.enabled_big_searchbar=0;
     this.show_map_onBack();
     this.set_searchbox_value(address);
     this.remove_list_searchbox();
     this.set_Pin_Marker();
   }
   onCancel() {
-    this.remove_list_searchbox()
+    this.remove_list_searchbox();
     this.set_searchbox_value('');
+    this.ion_input_element.nativeElement.setBlur();
     if (this.pin_search != null)
       this.map.removeLayer(this.pin_search);
   }
   set_searchbox_value(txt) {
     this.enabled_ionChange_searchbox = 0;
     this.selectedAddress = txt;
+    console.log(this.selectedAddress)
   }
   remove_list_searchbox() {
     this.addresses = [];
@@ -398,7 +415,6 @@ export class MappaPage {
   }
 
   initMap() {
-
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
     this.go_next_map_view();
     this.map.on('dragstart', function () {
@@ -563,7 +579,6 @@ export class MappaPage {
       }
     );
   }
-
   send_notifica() {
     this.notifica_page.create_notifica("Via", "B");
   }

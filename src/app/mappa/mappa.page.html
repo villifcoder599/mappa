@@ -2,13 +2,13 @@
 
 </ion-header>
 
-<ion-content id="content" [fullscreen]="true">
+<ion-content class="content" [fullscreen]="true">
   <!-- <ion-searchbar #searchbar id="searchbar" (click)="hide_map_onclick()" placeholder="Cerca" [value]="selectedAddress.name"
     (ionChange)="search($event)" (ionClear)="onCancel()">
   </ion-searchbar> -->
   <ion-item #searchbar id="searchbar">
     <ion-icon class="icon" name="{{icon_name_searchbar}}" (click)="icon_searchbar_onBack()"></ion-icon>
-    <ion-input #ion_input [value]="selectedAddress.name" placeholder="Cerca" (ionFocus)="hide_map_onclick()" (ionChange)="search($event)">
+    <ion-input #ion_input [(ngModel)]="selectedAddress.name" placeholder="Cerca" (ionFocus)="hide_map_onclick()" (ionChange)="search($event)">
     </ion-input>
     <ion-icon class="icon" name="close" (click)="onCancel()"></ion-icon>
   </ion-item>
