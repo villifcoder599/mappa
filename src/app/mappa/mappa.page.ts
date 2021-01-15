@@ -64,9 +64,11 @@ export class MappaPage {
   @ViewChild('searchbar', { read: ElementRef }) searchbar_element: ElementRef;
   @ViewChild('map', { read: ElementRef }) map_element: ElementRef;
   @ViewChild('ion_input', { read: ElementRef }) ion_input_element: ElementRef;
-  icon_name_searchbar="search";
-  animation_click_searchbox = 0;
+  icon_name_searchbar = "search";
+  enabled_animation_click_searchbox = 0;
+  enabled_ionChange_searchbox = 1;
   delta_searchbar = 105;
+  wait_animation = 0;
   timeout;
   pin_search;
   legend;
@@ -131,7 +133,7 @@ export class MappaPage {
   constructor(private gestureCtrl: GestureController, private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
       this.addresses.length = 0;
-      console.log("costruttore"); var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
+      var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
       if ((tutorial != true)) {
         this.router.navigate(['/tutorial']);
       }
@@ -175,24 +177,21 @@ export class MappaPage {
     moveGesture.enable(true);
     fetch('assets/docs/prova.txt').then((response) => response.json()).then((json) => {
       this.percorso = json.coordinates;
-      console.log(this.percorso)
     })
 
   }
 
   private onStart() {
-    if (this.animation_click_searchbox) {
-      console.log(this.searchbar_element.nativeElement);
+    if (!this.enabled_animation_click_searchbox) {
       this.searchbarAnimation(this.searchbar_element.nativeElement.offsetTop, -this.searchbar_element.nativeElement.offsetHeight - 5);
-      this.animation_click_searchbox = 0;
+      this.enabled_animation_click_searchbox = 1;
       //this.searchbar.nativeElement.offsetTop-=5;
     }
   }
   onClickMap() {
-    console.log(this.searchbar_element)
-    if (!this.animation_click_searchbox) {
+    if (!this.enabled_animation_click_searchbox) {
       this.searchbarAnimation(-this.searchbar_element.nativeElement.offsetHeight - 5, 0);
-      this.animation_click_searchbox = 1;
+      this.enabled_animation_click_searchbox = 1;
       //this.searchbar.nativeElement.offsetTop+=5;
     }
   }
@@ -203,42 +202,53 @@ export class MappaPage {
       .fromTo('transform', 'translateY(' + start + 'px)', 'translateY(' + end + 'px)');
     animation.play();
   }
-  icon_searchbar_onBack(){
-    if(this.icon_name_searchbar=='arrow-back'){
-      this.addresses=[];
+  icon_searchbar_onBack() {
+    if (this.icon_name_searchbar == 'arrow-back' && !this.wait_animation) {//!this.enabled_animation_click_searchbox && 
+      this.addresses = [];
       this.ion_input_element.nativeElement.setBlur();
+      console.log('blur');
       this.show_map_onBack();
     }
   }
-  async hide_map_onclick() {
-    this.icon_name_searchbar='arrow-back';
-    this.animation_click_searchbox = 0;
-    this.searchbar_element.nativeElement.style.position='relative';
-    var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
-    // console.log(margin_right);
-    this.mapAnimation(0, this.map_element.nativeElement.offsetHeight,
-      this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth + this.delta_searchbar - margin_right * 2);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    //this.map_element.nativeElement.style.display='none';
+  hide_map_onclick() {
+    if (!this.wait_animation) {
+      this.icon_name_searchbar = 'arrow-back';
+      this.enabled_animation_click_searchbox = 0;
+      this.searchbar_element.nativeElement.style.position = 'relative';
+      var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
+      this.mapAnimation(0, this.map_element.nativeElement.offsetHeight,
+        this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth + this.delta_searchbar - margin_right * 2);
+    }
+    else
+      this.ion_input_element.nativeElement.setBlur();
   }
   show_map_onBack() {
-    this.animation_click_searchbox = 1;
-    this.icon_name_searchbar='search';
-    this.searchbar_element.nativeElement.style.position='absolute';
+    this.enabled_animation_click_searchbox = 1;
+    this.icon_name_searchbar = 'search';
+    this.searchbar_element.nativeElement.style.position = 'absolute';
     var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
     this.mapAnimation(this.map_element.nativeElement.offsetHeight, 0,
-      this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth - this.delta_searchbar + margin_right*2);
+      this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth - this.delta_searchbar + margin_right * 2);
+    //await new Promise((resolve) => setTimeout(resolve, 600));
   }
   mapAnimation(start, end, width_start, width_end) {
-    var map_animation = createAnimation().addElement(this.map_element.nativeElement)
-      .easing('ease').duration(500)
-      .fromTo('transform', 'translateY(' + start + 'px)', 'translateY(' + end + 'px)');
-    var search_animation = createAnimation().addElement(this.searchbar_element.nativeElement)
-      .easing('ease').duration(500)
-      .fromTo('width', width_start + 'px', width_end + 'px');
-    console.log(this.searchbar_element);
-    map_animation.play();
-    search_animation.play();
+    {
+      this.wait_animation = 1;
+      var map_animation = createAnimation().addElement(this.map_element.nativeElement)
+        .easing('ease').duration(500)
+        .fromTo('transform', 'translateY(' + start + 'px)', 'translateY(' + end + 'px)');
+      var search_animation = createAnimation().addElement(this.searchbar_element.nativeElement)
+        .easing('ease').duration(500)
+        .fromTo('width', width_start + 'px', width_end + 'px');
+      map_animation.play();
+      search_animation.play().then(() =>
+        this.wait_animation = 0);
+      search_animation.onFinish((event) => {
+        if (event)
+          this.wait_animation = 0;
+      })
+      //await new Promise((resolve) => setTimeout(resolve, 600));
+    }
   }
   change_arrow_color() {
     switch (this.state_button_arrow.color) {
@@ -272,24 +282,24 @@ export class MappaPage {
   }
 
   search(event) {
-    this.addresses = [];
-    console.log("change");
-    this.animation_click_searchbox = 0;
-    if (this.timeout != null)
-      clearTimeout(this.timeout)
-    this.timeout = setTimeout(() => {
-      this.search_word(event);
-    }, 800);
+    if (this.enabled_ionChange_searchbox) {
+      this.addresses = [];
+      this.enabled_animation_click_searchbox = 0;
+      if (this.timeout != null)
+        clearTimeout(this.timeout)
+      this.timeout = setTimeout(() => {
+        this.search_word(event);
+      }, 800);
+    }
+    else
+      this.enabled_ionChange_searchbox = 1;
   }
   search_word(event) {
     var query = event.target.value.toLowerCase();
-    console.log(query.length)
     if (query.length > 0) {
-      console.log(query)
       fetch("https://photon.komoot.io/api?q=" + query + "&limit=10" + '&osm_tag=highway&&lat=43.80867&lon=11.25101')
         .then(response => response.json())
         .then((json) => {
-          console.log(json)
           var txt;
           var j = 0;
           for (var i = 0; i < json.features.length; i++) {
@@ -313,27 +323,29 @@ export class MappaPage {
     else {
       this.addresses = [];
     }
-    console.log(this.addresses)
   }
 
   onSelect(address) {
     this.show_map_onBack();
-    this.selectedAddress = address;
-    this.addresses = [];
+    this.set_searchbox_value(address);
+    this.remove_list_searchbox();
     this.set_Pin_Marker();
   }
   onCancel() {
-    console.log("cancel");
-    this.addresses=[];
-    this.ion_input_element.nativeElement.value=''
-    this.animation_click_searchbox = 0;
+    this.remove_list_searchbox()
+    this.set_searchbox_value('');
     if (this.pin_search != null)
       this.map.removeLayer(this.pin_search);
   }
+  set_searchbox_value(txt) {
+    this.enabled_ionChange_searchbox = 0;
+    this.selectedAddress = txt;
+  }
+  remove_list_searchbox() {
+    this.addresses = [];
+  }
   set_Pin_Marker() {
-    this.onCancel();
     this.map.setView(this.selectedAddress.coords, 18);
-    console.log(this.selectedAddress);
     this.pin_search = L.marker([this.selectedAddress.coords[0], this.selectedAddress.coords[1]]).addTo(this.map);
   }
   ionViewDidEnter() {
@@ -396,7 +408,6 @@ export class MappaPage {
     var draggable = new L.Draggable(this.marker_position);
     draggable.enable();
     this.marker_position.on('drag', () => {
-      console.log("dragEvent")
     })
     // var myLayer=L.geoJSON().addTo(this.map);
   }
@@ -412,7 +423,6 @@ export class MappaPage {
   crea_Strada() {
     this.test_marker.addEventListener('drag', (e) => {
       this.records_coords += '[' + e.latlng['lat'] + ',' + e.latlng['lng'] + ']' + ',';
-      console.log(this.records_coords);
     })
   }
   metti_Marker() {
@@ -426,7 +436,6 @@ export class MappaPage {
         else
           this.count_percorso += 4;
         this.latlong = this.percorso[this.count_percorso++];
-        console.log(this.count_percorso);
       }
       else {
         clearInterval(simulazione);
@@ -462,7 +471,6 @@ export class MappaPage {
   countLayers() {
     let i = 0;
     this.map.eachLayer(function () { i += 1; });
-    console.log('Map has ', i, 'layers.');
   }
   change_view_map() {
     if (this.actual_layer.length != 0) {
@@ -521,9 +529,6 @@ export class MappaPage {
     //   fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1')
     //     .then((response) => response.json())
     //     .then((json) => {
-    //       console.log(json.address.road+'\n');
-    //       console.log(json)
-    //       //console.log(json.address.road+" des"+json.extratags.description)
     //       if (json.extratags.description != undefined) {
     //         var tags = json.extratags.description.split(';');
     //         if (tags.length > 10) {
@@ -539,8 +544,6 @@ export class MappaPage {
   }
   check_street(tags, address) {
     var authoriz_user = this.detailsPage.get_authorization_user();
-    console.log(authoriz_user);
-    console.log(tags);
     for (var i = 4; i < 15; i++) {
       if (authoriz_user[i - 4].isChecked == false && tags[i].split(':')[1] != '0') {
         this.nativeAudio.play('notification_sound');

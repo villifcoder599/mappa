@@ -8,7 +8,7 @@
   </ion-searchbar> -->
   <ion-item #searchbar id="searchbar">
     <ion-icon class="icon" name="{{icon_name_searchbar}}" (click)="icon_searchbar_onBack()"></ion-icon>
-    <ion-input #ion_input (ionFocus)="hide_map_onclick()" (ionChange)="search($event)">
+    <ion-input #ion_input [value]="selectedAddress.name" placeholder="Cerca" (ionFocus)="hide_map_onclick()" (ionChange)="search($event)">
     </ion-input>
     <ion-icon class="icon" name="close" (click)="onCancel()"></ion-icon>
   </ion-item>
