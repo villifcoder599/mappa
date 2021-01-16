@@ -185,16 +185,18 @@ export class MappaPage {
   }
 
   private onStart() {
+    console.log(this.enabled_animation_click_searchbox);
     if (!this.enabled_animation_click_searchbox) {
-      this.searchbarAnimation(this.searchbar_element.nativeElement.offsetTop, -this.searchbar_element.nativeElement.offsetHeight - 5);
+      this.searchbarAnimation(0, -this.searchbar_element.nativeElement.offsetHeight - 5);
       this.enabled_animation_click_searchbox = 1;
       //this.searchbar.nativeElement.offsetTop-=5;
     }
   }
   onClickMap() {
-    if (!this.enabled_animation_click_searchbox) {
+    console.log(this.enabled_animation_click_searchbox);
+    if (this.enabled_animation_click_searchbox) {
       this.searchbarAnimation(-this.searchbar_element.nativeElement.offsetHeight - 5, 0);
-      this.enabled_animation_click_searchbox = 1;
+      this.enabled_animation_click_searchbox = 0;
       //this.searchbar.nativeElement.offsetTop+=5;
     }
   }
@@ -345,10 +347,11 @@ export class MappaPage {
     this.set_searchbox_value(address);
     this.remove_list_searchbox();
     this.set_Pin_Marker();
+    this.enabled_animation_click_searchbox=0;
   }
   onCancel() {
     this.remove_list_searchbox();
-    this.set_searchbox_value('');
+    this.set_searchbox_value({name:'',coords:[]});
     this.ion_input_element.nativeElement.setBlur();
     if (this.pin_search != null)
       this.map.removeLayer(this.pin_search);
