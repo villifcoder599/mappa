@@ -25,6 +25,8 @@ import { DetailsPageRoutingModule } from '../details/details-routing.module';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-native/file-transfer/ngx';
 import { File } from '@ionic-native/file/ngx';
+import { IonicGestureConfig } from '../utils/IonicGestureConfig';
+import { LongPressModule } from 'ionic-long-press';
 @NgModule({
   imports: [
     CommonModule,
@@ -37,11 +39,11 @@ import { File } from '@ionic-native/file/ngx';
     NotificaPageRoutingModule,
     CustomAlertPageRoutingModule,
     DetailsPageRoutingModule,
-
+    LongPressModule
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
     AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,
-    CustomAlertPage,DetailsPage,AndroidPermissions,File,FileTransfer,FileTransferObject],
+    CustomAlertPage,DetailsPage,AndroidPermissions,File,FileTransfer],
   declarations: [MappaPage],
 })
 export class MappaPageModule { }

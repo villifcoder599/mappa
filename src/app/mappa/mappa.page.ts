@@ -3,7 +3,7 @@ import { Router } from '@angular/router'
 import { Geolocation } from '@ionic-native/geolocation/ngx'
 import { NativeGeocoder } from '@ionic-native/native-geocoder/ngx';
 import { HttpClient } from '@angular/common/http';
-import { createAnimation, IonSearchbar, Platform } from '@ionic/angular';
+import { createAnimation, Platform } from '@ionic/angular';
 import * as L from 'leaflet';
 import { DeviceOrientation, DeviceOrientationCompassHeading } from '@ionic-native/device-orientation/ngx';
 import { AlertController } from '@ionic/angular';
@@ -18,7 +18,8 @@ import { DetailsPage } from '../details/details.page';
 import { TabsPage } from '../tabs/tabs.page';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { GestureController } from '@ionic/angular';
-
+import 'hammerjs';
+import { LongPressModule } from 'ionic-long-press';
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cordova run android --prod per il problema della velocita dell'app
@@ -51,7 +52,9 @@ import { GestureController } from '@ionic/angular';
   6.65) Searchbox scompare con swipe in alto OK
   6.7)Controllare differenza tra pol_soccorso e soccorso (soccorso o 0 o -1) OK
   6.8)Simulazione percorso per testare funzionamento OK
-  6.9)Searbox più grande? (se sì fare come google maps con animazioni) MANCA VEDERE GRANDEZZA SEACRHBOX
+  6.9)Searbox più grande? (se sì fare come google maps con animazioni) OK
+  6.95)Cambiare display name del reverse_tap e back button quando torno indietro non cancellare il testo
+       se c'è il pin sulla mappa
   6.10)Per rendere dinamico l'aggiornamento confrontare ide_corsia del json con ide_corsia del pdf 
       sul sito di Firenze con l'elenco delle corsie riservate
 */
@@ -64,15 +67,15 @@ export class MappaPage {
   @ViewChild('searchbar', { read: ElementRef }) searchbar_element: ElementRef;
   @ViewChild('map', { read: ElementRef }) map_element: ElementRef;
   @ViewChild('ion_input', { read: ElementRef }) ion_input_element: ElementRef;
-  enabled_big_searchbar=0;
-  duration_animation_map=400;
+  enabled_big_searchbar = 0;
+  duration_animation_map = 400;
   icon_name_searchbar = "search";
   enabled_animation_click_searchbox = 0;
   enabled_ionChange_searchbox = 1;
   delta_searchbar = 105;
   wait_animation = 0;
   timeout;
-  pin_search;
+  pin_search = { marker: null, name: '', coords: [] };
   legend;
   addresses = [{
     name: '',
@@ -174,7 +177,7 @@ export class MappaPage {
       el: this.searchbar_element.nativeElement,
       threshold: 10,
       direction: 'y',
-      gestureName: 'swipe_bottom-up',
+      gestureName: 'swipe_bottomup',
       onStart: (ev) => { this.onStart() },
     });
     moveGesture.enable(true);
@@ -183,9 +186,7 @@ export class MappaPage {
     })
 
   }
-
   private onStart() {
-    console.log(this.enabled_animation_click_searchbox);
     if (!this.enabled_animation_click_searchbox) {
       this.searchbarAnimation(0, -this.searchbar_element.nativeElement.offsetHeight - 5);
       this.enabled_animation_click_searchbox = 1;
@@ -193,7 +194,6 @@ export class MappaPage {
     }
   }
   onClickMap() {
-    console.log(this.enabled_animation_click_searchbox);
     if (this.enabled_animation_click_searchbox) {
       this.searchbarAnimation(-this.searchbar_element.nativeElement.offsetHeight - 5, 0);
       this.enabled_animation_click_searchbox = 0;
@@ -210,28 +210,30 @@ export class MappaPage {
   icon_searchbar_onBack() {
     if (this.icon_name_searchbar == 'arrow-back' && !this.wait_animation) {//!this.enabled_animation_click_searchbox && 
       this.addresses = [];
-      this.enabled_big_searchbar=0;
+      this.enabled_big_searchbar = 0;
       this.ion_input_element.nativeElement.setBlur();
-      this.set_searchbox_value({name:"",coords:[]})
+      console.log(this.pin_search)
+      if (this.pin_search.marker != null)
+        this.set_searchbox_value({ name: this.pin_search.name, coords: this.pin_search.coords })
       this.show_map_onBack();
     }
   }
   async hide_map_onclick() {
-    console.log('wait_animation '+this.wait_animation);
-    console.log('big_search '+this.enabled_big_searchbar)
+    // console.log('wait_animation ' + this.wait_animation);
+    // console.log('big_search ' + this.enabled_big_searchbar)
     if (!this.wait_animation && !this.enabled_big_searchbar) {
       this.icon_name_searchbar = 'arrow-back';
-      this.enabled_big_searchbar=1;
+      this.enabled_big_searchbar = 1;
       this.enabled_animation_click_searchbox = 0;
       this.searchbar_element.nativeElement.style.position = 'relative';
       var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
       this.mapAnimation(0, this.map_element.nativeElement.offsetHeight,
         this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth + this.delta_searchbar - margin_right * 2);
-      await new Promise((resolve) => setTimeout(resolve, this.duration_animation_map+10));
+      await new Promise((resolve) => setTimeout(resolve, this.duration_animation_map + 10));
       this.map_element.nativeElement.style.display = 'none';
     }
     else
-      if(this.wait_animation)
+      if (this.wait_animation)
         this.ion_input_element.nativeElement.setBlur();
   }
   show_map_onBack() {
@@ -242,7 +244,7 @@ export class MappaPage {
     var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
     this.mapAnimation(this.map_element.nativeElement.offsetHeight, 0,
       this.searchbar_element.nativeElement.offsetWidth, this.searchbar_element.nativeElement.offsetWidth - this.delta_searchbar + margin_right * 2);
-    
+
   }
   mapAnimation(start, end, width_start, width_end) {
     {
@@ -309,10 +311,8 @@ export class MappaPage {
   }
   search_word(event) {
     var query = event.target.value;
-    console.log(query)
-    console.log(query.length);
     if (query.length > 0) {
-      query=query.toLowerCase();
+      query = query.toLowerCase();
       fetch("https://photon.komoot.io/api?q=" + query + "&limit=11" + '&osm_tag=highway&&lat=43.80867&lon=11.25101')
         .then(response => response.json())
         .then((json) => {
@@ -320,11 +320,7 @@ export class MappaPage {
           var j = 0;
           for (var i = 0; i < json.features.length; i++) {
             if (json.features[i].properties != undefined) {
-              txt = (json.features[i].properties.name != undefined ? json.features[i].properties.name + ',' : '') +
-                (json.features[i].properties.city != undefined ? json.features[i].properties.city + ',' : '') +
-                (json.features[i].properties.county != undefined && json.features[i].properties.county != json.features[i].properties.city ? json.features[i].properties.county + ',' : '') +
-                (json.features[i].properties.state != undefined ? json.features[i].properties.state + ',' : '') +
-                (json.features[i].properties.country != undefined ? json.features[i].properties.country : '');
+              txt = this.create_name_from_json(json.features[i])
               if (this.addresses.map(function (e) { return e.name; }).indexOf(txt) == -1) {
                 this.addresses[j] = {
                   name: txt,
@@ -334,27 +330,39 @@ export class MappaPage {
               }
             }
           }
+        }).then(() => {
+          if (this.enabled_big_searchbar == 0)
+            this.addresses = [];
         })
     }
     else {
       this.addresses = [];
     }
   }
-
+  create_name_from_json(json) {
+    var txt = (json.properties.street != undefined ? json.properties.street + ',' : '') +
+      (json.properties.name != undefined ? json.properties.name + ',' : '') +
+      (json.properties.locality != undefined ? json.properties.locality + ',' : '') +
+      (json.properties.city != undefined ? json.properties.city + ',' : '') +
+      (json.properties.county != undefined && json.properties.county != json.properties.city ? json.properties.county + ',' : '') +
+      (json.properties.state != undefined ? json.properties.state + ',' : '') +
+      (json.properties.country != undefined ? json.properties.country : '');
+    return txt;
+  }
   onSelect(address) {
-    this.enabled_big_searchbar=0;
+    this.enabled_big_searchbar = 0;
     this.show_map_onBack();
     this.set_searchbox_value(address);
     this.remove_list_searchbox();
-    this.set_Pin_Marker();
-    this.enabled_animation_click_searchbox=0;
+    this.set_Pin_Marker(this.selectedAddress.coords, true);
+    this.enabled_animation_click_searchbox = 0;
   }
   onCancel() {
     this.remove_list_searchbox();
-    this.set_searchbox_value({name:'',coords:[]});
+    this.set_searchbox_value({ name: '', coords: [] });
     this.ion_input_element.nativeElement.setBlur();
-    if (this.pin_search != null)
-      this.map.removeLayer(this.pin_search);
+    if (this.pin_search.marker != null)
+      this.map.removeLayer(this.pin_search.marker);
   }
   set_searchbox_value(txt) {
     this.enabled_ionChange_searchbox = 0;
@@ -364,9 +372,16 @@ export class MappaPage {
   remove_list_searchbox() {
     this.addresses = [];
   }
-  set_Pin_Marker() {
-    this.map.setView(this.selectedAddress.coords, 18);
-    this.pin_search = L.marker([this.selectedAddress.coords[0], this.selectedAddress.coords[1]]).addTo(this.map);
+  set_Pin_Marker(coords, enab_setView) {
+    if (enab_setView)
+      this.map.setView(coords, this.map.getZoom());
+    if (this.pin_search.marker != null) {
+      this.map.removeLayer(this.pin_search.marker);
+    }
+    this.pin_search.marker = L.marker([coords[0], coords[1]]).addTo(this.map);
+    this.pin_search.name = this.selectedAddress.name;
+    this.pin_search.coords = this.selectedAddress.coords;
+    console.log(this.pin_search);
   }
   ionViewDidEnter() {
     if (this.map == null) {
@@ -428,8 +443,21 @@ export class MappaPage {
     draggable.enable();
     this.marker_position.on('drag', () => {
     })
-    // var myLayer=L.geoJSON().addTo(this.map);
+    var timeout;
+    this.map.on("mousedown", (e) => {
+      timeout = setTimeout(() => {
+        fetch('https://photon.komoot.io/reverse?lon=' + e.latlng.lng + '&lat=' + e.latlng.lat)
+          .then((response) => response.json())
+          .then((json) => {
+            this.set_searchbox_value({ name: this.create_name_from_json(json.features[0]), coords: [json.features[0].geometry.coordinates[1], json.features[0].geometry.coordinates[0]] })
+            this.set_Pin_Marker([e.latlng.lat, e.latlng.lng], false);
+          });
+      }, 350);
+    });
+    this.map.on('mouseup', () => { clearTimeout(timeout); })
+    this.map.on('movestart',()=> { clearTimeout(timeout); })
   }
+
   drag_end_event(event) {
     if (event.distance > 80 && this.state_button_arrow.state) {
       this.focus_on_marker = false;
@@ -463,7 +491,6 @@ export class MappaPage {
       this.fake_gps();
     }, 50)
   }
-
   draw_multilines(colors_selected) {
     fetch("assets/docs/geoJSON_corsie.geojson")
       .then((response) => response.json())
@@ -572,7 +599,6 @@ export class MappaPage {
       }
     }
   }
-
   //Ruota marker_position in base a dove punta il telefono
   enable_device_orientation() {
     this.deviceOrientation.watchHeading().subscribe(
