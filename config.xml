@@ -23,7 +23,7 @@
     <preference name="SplashShowOnlyFirstTime" value="false" />
     <preference name="SplashScreen" value="none" />
     <preference name="LottieAnimationLocation" value="www/assets/docs/lottie.json" />
-    <preference name="LottieAutoHideSplashScreen" value="true" />
+    <preference name="LottieHideTimeout" value="2500" />
     <preference name="LottieLoopAnimation" value="true" />
     <preference name="LottieFullScreen" value="true" />
     <preference name="LottieFadeOutDuration" value="1000" />
