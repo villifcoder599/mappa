@@ -20,6 +20,7 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { GestureController } from '@ionic/angular';
 import 'hammerjs';
 import { LongPressModule } from 'ionic-long-press';
+import { element } from 'protractor';
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cordova run android --prod per il problema della velocita dell'app
@@ -54,9 +55,10 @@ import { LongPressModule } from 'ionic-long-press';
   6.8)Simulazione percorso per testare funzionamento OK
   6.9)Searbox più grande? (se sì fare come google maps con animazioni) OK
   6.95)Cambiare display name del reverse_tap e back button quando torno indietro non cancellare il testo
-       se c'è il pin sulla mappa
+       se c'è il pin sulla mappa OK
+      aggiustare searchbar width e far funzionare mouse down e mouse up su telefono
   6.10)Per rendere dinamico l'aggiornamento confrontare ide_corsia del json con ide_corsia del pdf 
-      sul sito di Firenze con l'elenco delle corsie riservate
+      sul sito di Firenze con l'elenco delle corsie riservate NO
 */
 @Component({
   selector: 'app-mappa',
@@ -184,7 +186,6 @@ export class MappaPage {
     fetch('assets/docs/prova.txt').then((response) => response.json()).then((json) => {
       this.percorso = json.coordinates;
     })
-
   }
   private onStart() {
     if (!this.enabled_animation_click_searchbox) {
@@ -294,6 +295,7 @@ export class MappaPage {
       return div;
     })
     this.legend.addTo(this.map);
+    
   }
 
   search(event) {
@@ -360,9 +362,12 @@ export class MappaPage {
   onCancel() {
     this.remove_list_searchbox();
     this.set_searchbox_value({ name: '', coords: [] });
-    this.ion_input_element.nativeElement.setBlur();
-    if (this.pin_search.marker != null)
+    if(!this.enabled_big_searchbar)
+      this.ion_input_element.nativeElement.setBlur();
+    if (this.pin_search.marker != null) {
       this.map.removeLayer(this.pin_search.marker);
+      this.pin_search.marker = null;
+    }
   }
   set_searchbox_value(txt) {
     this.enabled_ionChange_searchbox = 0;
@@ -389,11 +394,19 @@ export class MappaPage {
       this.enable_device_orientation();
       // this.getPosition();
     }
-
     var map_colors = this.sel_line_color_page.get_colors();
     this.showMap();
     this.create_legend(map_colors);
     this.draw_multilines(map_colors);
+    this.set_width_searchbar();
+  }
+  set_width_searchbar(){
+    var elements = document.getElementsByClassName('leaflet-top leaflet-right');
+    this.delta_searchbar=elements[0].clientWidth + this.searchbar_element.nativeElement.offsetLeft;
+    this.searchbar_element.nativeElement.style.width = (document.getElementById('content').offsetWidth - elements[0].clientWidth  - this.searchbar_element.nativeElement.offsetLeft) + 'px';
+    //console.log(document.getElementById('content').offsetWidth);
+    alert('width seacrbar '+this.searchbar_element.nativeElement.style.width);
+    alert('delta '+this.delta_searchbar)
   }
   //controllo permesso accesso al gps
   checkGPSPermission() {
@@ -442,22 +455,17 @@ export class MappaPage {
     var draggable = new L.Draggable(this.marker_position);
     draggable.enable();
     this.marker_position.on('drag', () => {
-    })
-    var timeout;
-    this.map.on("mousedown", (e) => {
-      timeout = setTimeout(() => {
-        fetch('https://photon.komoot.io/reverse?lon=' + e.latlng.lng + '&lat=' + e.latlng.lat)
-          .then((response) => response.json())
-          .then((json) => {
-            this.set_searchbox_value({ name: this.create_name_from_json(json.features[0]), coords: [json.features[0].geometry.coordinates[1], json.features[0].geometry.coordinates[0]] })
-            this.set_Pin_Marker([e.latlng.lat, e.latlng.lng], false);
-          });
-      }, 350);
     });
-    this.map.on('mouseup', () => { clearTimeout(timeout); })
-    this.map.on('movestart',()=> { clearTimeout(timeout); })
+    this.map.on("contextmenu", (e) => {
+      fetch('https://photon.komoot.io/reverse?lon=' + e.latlng.lng + '&lat=' + e.latlng.lat)
+        .then((response) => response.json())
+        .then((json) => {
+          console.log(e)
+          this.set_searchbox_value({ name: this.create_name_from_json(json.features[0]), coords: [json.features[0].geometry.coordinates[1], json.features[0].geometry.coordinates[0]] })
+          this.set_Pin_Marker([e.latlng.lat, e.latlng.lng], false);
+        });
+    });
   }
-
   drag_end_event(event) {
     if (event.distance > 80 && this.state_button_arrow.state) {
       this.focus_on_marker = false;
