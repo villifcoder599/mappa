@@ -8,7 +8,7 @@ import { createAnimation } from '@ionic/core';
   templateUrl: './notifica.page.html',
   styleUrls: ['./notifica.page.scss'],
 })
-export class NotificaPage{
+export class NotificaPage {
   @ViewChild('listone') lista: IonList;
   listaNotifica = [];
   constructor(private tabsPage: TabsPage, private platform: Platform) {
@@ -25,32 +25,38 @@ export class NotificaPage{
   create_notifica(nome, tipo) {
     var data;
     var ora = new Date();
-    data = (ora.getDate() + '/' + (ora.getMonth() + 1) + '/' + ora.getFullYear() + '  ' + ora.getHours() + ':' + ora.getMinutes());
+    data = (ora.getDate() + 
+    '/' + (ora.getMonth() + 1) +
+    '/' + ora.getFullYear() + 
+    '  ' + 
+    (ora.getHours()<10 ? ('0'+ora.getHours()) :ora.getHours()) + ':' +
+    (ora.getMinutes()<10 ? ('0'+ora.getMinutes()) :ora.getMinutes()));
     this.addNotifica("Sei transitato in " + nome + ', corsia di tipo ' + tipo, data);
     this.tabsPage.update_badge();
   }
   addNotifica(txt, date) {
-    if(JSON.parse(window.localStorage.getItem('listaNotifica'))!=undefined)
+    if (JSON.parse(window.localStorage.getItem('listaNotifica')) != undefined)
       this.listaNotifica = JSON.parse(window.localStorage.getItem('listaNotifica'));
     else
-      this.listaNotifica=[];
-    this.listaNotifica.push({ text: txt, date: date });
+      this.listaNotifica = [];
+    this.listaNotifica.unshift({ text: txt, date: date });
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
   }
   remove_all() {
     this.listaNotifica = [];
     window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
   }
-  async deleteItem(i,ev) {
-    var amountToShift=ev.currentTarget.offsetHeight;
-    const animation=createAnimation();
-    var duration=(350);
-    animation.addElement(document.querySelector('.animation'+i))
-    .easing('ease').duration(duration)
-    .fromTo('height',amountToShift+'px','0px');
-    animation.play();
-    await new Promise((resolve)=>setTimeout(resolve,duration)); //wait end animation
-    this.listaNotifica.splice(i, 1);
-    window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
+  deleteItem(i, ev) {
+    var amountToShift = ev.currentTarget.offsetHeight;
+    const animation = createAnimation();
+    var duration = (350);
+    animation.addElement(document.querySelector('.animation' + i))
+      .easing('ease').duration(duration)
+      .fromTo('height', amountToShift + 'px', '0px');
+    animation.play().then(() => {
+      this.listaNotifica.splice(i,1);
+      console.log('end animation -> delete item ' + i);
+      window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
+    });
   }
 }

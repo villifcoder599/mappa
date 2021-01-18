@@ -9,7 +9,7 @@
 
 <ion-content>
     <ion-list #listone lines="none">
-        <ion-item-sliding class="animation{{i}}" *ngFor="let entry of listaNotifica.reverse(); let i = index">
+        <ion-item-sliding class="animation{{i}}" *ngFor="let entry of listaNotifica; let i = index">
             <div id="back_item_options" class="item{{i}}">
                 <ion-item>
                     <div id="notifica">
