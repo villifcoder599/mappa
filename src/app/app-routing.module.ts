@@ -24,7 +24,11 @@ const routes: Routes = [
   },
   {
     path: 'istruzioni-autorizzazioni',
-    loadChildren: () => import('./istruzioni-autorizzazioni/istruzioni-autorizzazioni.module').then( m => m.IstruzioniAutorizzazioniPageModule)
+    loadChildren: () => import('./istruzioni-autorizzazioni/istruzioni-autorizzazioni.module').then(m=>m.IstruzioniAutorizzazioniPageModule)
+  },
+  {
+    path: 'filtro-istruzioni-autorizzazione',
+    loadChildren: () => import('./filtro-istruzioni-autorizzazione/filtro-istruzioni-autorizzazione.module').then( m => m.FiltroIstruzioniAutorizzazionePageModule)
   },
 ];
 
