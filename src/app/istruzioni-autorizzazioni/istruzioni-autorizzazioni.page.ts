@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { DataService } from '../services/data.service';
 
 @Component({
   selector: 'app-istruzioni-autorizzazioni',
@@ -7,9 +9,26 @@ import { Component, OnInit } from '@angular/core';
 })
 export class IstruzioniAutorizzazioniPage implements OnInit {
 
-  constructor() { }
+  constructor(private router: Router, private dataService: DataService) { }
 
   ngOnInit() {
-  }
 
+  }
+  //0->A 1->B 2->C1 3->C6 4->C7
+  ionViewDidEnter() {
+    var view = this.dataService.getDisplayInfoAutorizz();
+    console.log(view)
+    for (var i = 0; i < view.length; i++) {
+      switch (i) {
+        case 0: { document.getElementById('A').style.display = view[i]; break; }
+        case 1: { document.getElementById('B').style.display = view[i]; break; }
+        case 2: { document.getElementById('C1').style.display = view[i]; break; }
+        case 3: { document.getElementById('C6').style.display = view[i]; break; }
+        case 4: { document.getElementById('C7').style.display = view[i]; break; }
+      }
+    }
+  }
+  open_filtro() {
+    this.router.navigate(['filtro-istruzioni-autorizzazione']);
+  }
 }
