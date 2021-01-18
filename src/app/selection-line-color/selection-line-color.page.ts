@@ -23,7 +23,7 @@ export class SelectionLineColorPage implements OnInit {
     { corsia: 'A', color: this.colors[0] },
     { corsia: 'B', color: this.colors[1] },
     { corsia: 'C1', color: this.colors[2] },
-    { corsia: 'C2', color: this.colors[10] },
+    //{ corsia: 'C2', color: this.colors[10] },
     { corsia: 'C6', color: this.colors[4] },
     { corsia: 'C7', color: this.colors[3] }
   ];
