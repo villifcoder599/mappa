@@ -56,9 +56,12 @@ import { element } from 'protractor';
   6.9)Searbox più grande? (se sì fare come google maps con animazioni) OK
   6.95)Cambiare display name del reverse_tap e back button quando torno indietro non cancellare il testo
        se c'è il pin sulla mappa OK
-      aggiustare searchbar width e far funzionare mouse down e mouse up su telefono
+      aggiustare searchbar width e far funzionare mouse down e mouse up su telefono OK
   6.10)Per rendere dinamico l'aggiornamento confrontare ide_corsia del json con ide_corsia del pdf 
-      sul sito di Firenze con l'elenco delle corsie riservate NO
+      sul sito di Firenze con l'elenco delle corsie riservate NO 
+  6.11) Fare filtro per vista autorizzazioni OK   
+  6.12) Controllare simulazione percorso (cambiare arrivo stazione poichè non funziona API)
+  6.13)Controllare eventuali bug
 */
 @Component({
   selector: 'app-mappa',
@@ -145,7 +148,7 @@ export class MappaPage {
       if ((tutorial != true)) {
         this.router.navigate(['/tutorial']);
       }
-      //window.localStorage.clear();
+      window.localStorage.clear();
       //this.latlong = [43.80867, 11.25101];
       this.latlong = [43.798245080028536, 11.24322352064662];
       this.marker_circle = L.circleMarker(this.latlong, {
@@ -295,7 +298,7 @@ export class MappaPage {
       return div;
     })
     this.legend.addTo(this.map);
-    
+
   }
 
   search(event) {
@@ -315,7 +318,7 @@ export class MappaPage {
     var query = event.target.value;
     if (query.length > 0) {
       query = query.toLowerCase();
-      fetch("https://photon.komoot.io/api?q=" + query + "&limit=11" + '&osm_tag=highway&&lat=43.80867&lon=11.25101')
+      fetch("https://photon.komoot.io/api?q=" + query + "&limit=11" + '&lat=43.80867&lon=11.25101')
         .then(response => response.json())
         .then((json) => {
           var txt;
@@ -362,7 +365,7 @@ export class MappaPage {
   onCancel() {
     this.remove_list_searchbox();
     this.set_searchbox_value({ name: '', coords: [] });
-    if(!this.enabled_big_searchbar)
+    if (!this.enabled_big_searchbar)
       this.ion_input_element.nativeElement.setBlur();
     if (this.pin_search.marker != null) {
       this.map.removeLayer(this.pin_search.marker);
@@ -400,13 +403,13 @@ export class MappaPage {
     this.draw_multilines(map_colors);
     this.set_width_searchbar();
   }
-  set_width_searchbar(){
+  set_width_searchbar() {
     var elements = document.getElementsByClassName('leaflet-top leaflet-right');
-    this.delta_searchbar=elements[0].clientWidth + this.searchbar_element.nativeElement.offsetLeft;
-    this.searchbar_element.nativeElement.style.width = (document.getElementById('content').offsetWidth - elements[0].clientWidth  - this.searchbar_element.nativeElement.offsetLeft) + 'px';
+    this.delta_searchbar = elements[0].clientWidth + this.searchbar_element.nativeElement.offsetLeft;
+    this.searchbar_element.nativeElement.style.width = (document.getElementById('content').offsetWidth - elements[0].clientWidth - this.searchbar_element.nativeElement.offsetLeft) + 'px';
     //console.log(document.getElementById('content').offsetWidth);
-    alert('width seacrbar '+this.searchbar_element.nativeElement.style.width);
-    alert('delta '+this.delta_searchbar)
+    alert('width seacrbar ' + this.searchbar_element.nativeElement.style.width);
+    alert('delta ' + this.delta_searchbar)
   }
   //controllo permesso accesso al gps
   checkGPSPermission() {
@@ -452,10 +455,10 @@ export class MappaPage {
       this.focus_on_marker = false;
     });
     this.map.on('dragend', (event) => this.drag_end_event(event));
-    var draggable = new L.Draggable(this.marker_position);
-    draggable.enable();
-    this.marker_position.on('drag', () => {
-    });
+    // var draggable = new L.Draggable(this.marker_position);
+    // draggable.enable();
+    // this.marker_position.on('drag', () => {
+    // });
     this.map.on("contextmenu", (e) => {
       fetch('https://photon.komoot.io/reverse?lon=' + e.latlng.lng + '&lat=' + e.latlng.lat)
         .then((response) => response.json())
@@ -476,8 +479,10 @@ export class MappaPage {
     }
   }
   crea_Strada() {
+    console.log('add event')
     this.test_marker.addEventListener('drag', (e) => {
       this.records_coords += '[' + e.latlng['lat'] + ',' + e.latlng['lng'] + ']' + ',';
+      console.log(this.records_coords);
     })
   }
   metti_Marker() {
@@ -513,9 +518,8 @@ export class MappaPage {
               case 'A': return { color: colors_selected[0].color.coding, opacity: opacity_value };
               case 'B': return { color: colors_selected[1].color.coding, opacity: opacity_value };
               case 'C1': return { color: colors_selected[2].color.coding, opacity: opacity_value };
-              case 'C2': return { color: colors_selected[3].color.coding, opacity: opacity_value };
-              case 'C6': return { color: colors_selected[4].color.coding, opacity: opacity_value };
-              case 'C7': return { color: colors_selected[5].color.coding, opacity: opacity_value };
+              case 'C6': return { color: colors_selected[3].color.coding, opacity: opacity_value };
+              case 'C7': return { color: colors_selected[4].color.coding, opacity: opacity_value };
               default: return { color: undefined };
             }
           }
@@ -548,11 +552,13 @@ export class MappaPage {
     this.marker_position.addTo(this.map);
   }
   fake_gps() {
-    this.marker_position.setLatLng(this.latlong);
-    this.marker_circle.setLatLng(this.latlong);
-    this.marker_circle.setRadius(this.accuracy);
-    if (this.focus_on_marker)
-      this.map.setView(this.latlong);
+    if (this.latlong != undefined) {
+      this.marker_position.setLatLng(this.latlong);
+      this.marker_circle.setLatLng(this.latlong);
+      this.marker_circle.setRadius(this.accuracy);
+      if (this.focus_on_marker)
+        this.map.setView(this.latlong);
+    }
 
   }
   watch_Position() {
@@ -580,31 +586,43 @@ export class MappaPage {
   }
   reverse_coords() {
     // setInterval(() => {
-    //   fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1')
-    //     .then((response) => response.json())
-    //     .then((json) => {
-    //       if (json.extratags.description != undefined) {
-    //         var tags = json.extratags.description.split(';');
-    //         if (tags.length > 10) {
-    //           var new_idee = tags[1].split(':')[1];
-    //           if (new_idee != this.ide_corsia) {
-    //             this.ide_corsia = new_idee;
-    //             this.check_street(tags, json.address.road);
+    //   if (this.latlong != undefined)
+    //     fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
+    //       .then((response) => response.json())
+    //       .then((json) => {
+    //         console.log(json.display_name);
+    //         console.log(json);
+    //         console.log('');
+    //         if (json.extratags.description != undefined) {
+    //           var tags = json.extratags.description.split(';');
+    //           if (tags.length > 10) {
+    //             var new_idee = tags[1].split(':')[1];
+    //             if (new_idee != this.ide_corsia) {
+    //               this.ide_corsia = new_idee;
+    //               this.check_street(tags, json.address.road);
+    //             }
     //           }
     //         }
-    //       }
-    //     })
-    // }, 4000);
+    //       })
+    // }, 3000);
   }
   check_street(tags, address) {
     var authoriz_user = this.detailsPage.get_authorization_user();
-    for (var i = 4; i < 15; i++) {
-      if (authoriz_user[i - 4].isChecked == false && tags[i].split(':')[1] != '0') {
-        this.nativeAudio.play('notification_sound');
-        this.custom_alert_page.show_alert();
-        this.notifica_page.create_notifica(address, tags[1].split(':')[1].split('0')[0]);
-        i = 15;
+    var is_authorized = false;
+    console.log(tags);
+    for (var i = 4; i < 15 && !is_authorized; i++) {
+      if (i==14) {
+        console.log()
+        if ((authoriz_user[i - 4].isChecked && tags[i].split(':')[1] != '0') || (authoriz_user[i - 4].isChecked && tags[9].split(':')[1] != '0'))
+          is_authorized = true;
       }
+      else if (authoriz_user[i - 4].isChecked && tags[i].split(':')[1] != '0')
+        is_authorized = true;
+    }
+    if (!is_authorized) {
+      this.nativeAudio.play('notification_sound');
+      this.custom_alert_page.show_alert();
+      this.notifica_page.create_notifica(address, tags[1].split(':')[1].split('0')[0]);
     }
   }
   //Ruota marker_position in base a dove punta il telefono
