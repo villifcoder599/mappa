@@ -19,8 +19,7 @@ import { TabsPage } from '../tabs/tabs.page';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { GestureController } from '@ionic/angular';
 import 'hammerjs';
-import { LongPressModule } from 'ionic-long-press';
-import { element } from 'protractor';
+
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cordova run android --prod per il problema della velocita dell'app
@@ -61,7 +60,7 @@ import { element } from 'protractor';
       sul sito di Firenze con l'elenco delle corsie riservate NO 
   6.11) Fare filtro per vista autorizzazioni OK   
   6.12) Controllare simulazione percorso (cambiare arrivo stazione poichè non funziona API)
-  6.13)Controllare eventuali bug
+  6.13) Controllare eventuali bug
 */
 @Component({
   selector: 'app-mappa',
@@ -148,7 +147,7 @@ export class MappaPage {
       if ((tutorial != true)) {
         this.router.navigate(['/tutorial']);
       }
-      window.localStorage.clear();
+      //window.localStorage.clear();
       //this.latlong = [43.80867, 11.25101];
       this.latlong = [43.798245080028536, 11.24322352064662];
       this.marker_circle = L.circleMarker(this.latlong, {
@@ -269,16 +268,27 @@ export class MappaPage {
       //await new Promise((resolve) => setTimeout(resolve, 600));
     }
   }
-  change_arrow_color() {
+  invert_arrow_color() {
     switch (this.state_button_arrow.color) {
       case "light": {
-        this.state_button_arrow.color = "dark";
-        this.state_button_arrow.state = true
+        this.setArrowColor('dark')
+        // this.state_button_arrow.color = "dark";
+        // this.state_button_arrow.state = true
       }; break;
       case "dark": {
-        this.state_button_arrow.color = "light";
-        this.state_button_arrow.state = false
+        this.setArrowColor('light')
+        // this.state_button_arrow.color = "light";
+        // this.state_button_arrow.state = false
       }; break;
+    }
+  }
+  setArrowColor(color) {
+    if (color == 'dark' || color == 'light') {
+      this.state_button_arrow.color = color
+      if (color == "dark")
+        this.state_button_arrow.state = true;
+      else
+        this.state_button_arrow.state = false;
     }
   }
   create_legend(colors_selected) {
@@ -355,6 +365,7 @@ export class MappaPage {
     return txt;
   }
   onSelect(address) {
+    this.invert_arrow_color()
     this.enabled_big_searchbar = 0;
     this.show_map_onBack();
     this.set_searchbox_value(address);
@@ -451,19 +462,21 @@ export class MappaPage {
   initMap() {
     this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 17);
     this.go_next_map_view();
-    this.map.on('dragstart', function () {
+    this.map.on('dragstart', ()=> {
       this.focus_on_marker = false;
+      console.log(this.focus_on_marker)
     });
     this.map.on('dragend', (event) => this.drag_end_event(event));
-    // var draggable = new L.Draggable(this.marker_position);
-    // draggable.enable();
-    // this.marker_position.on('drag', () => {
-    // });
+    this.long_tap_map();
+  }
+  long_tap_map() {
     this.map.on("contextmenu", (e) => {
+      //console.log(e)
       fetch('https://photon.komoot.io/reverse?lon=' + e.latlng.lng + '&lat=' + e.latlng.lat)
         .then((response) => response.json())
         .then((json) => {
-          console.log(e)
+          console.log("json contextmenu click")
+          console.log(json);
           this.set_searchbox_value({ name: this.create_name_from_json(json.features[0]), coords: [json.features[0].geometry.coordinates[1], json.features[0].geometry.coordinates[0]] })
           this.set_Pin_Marker([e.latlng.lat, e.latlng.lng], false);
         });
@@ -471,11 +484,12 @@ export class MappaPage {
   }
   drag_end_event(event) {
     if (event.distance > 80 && this.state_button_arrow.state) {
-      this.focus_on_marker = false;
-      this.change_arrow_color();
+      //this.focus_on_marker = false;
+      this.invert_arrow_color();
     }
     if (this.state_button_arrow.state) {
       this.map.setView(this.latlong);
+      this.focus_on_marker=true;
     }
   }
   crea_Strada() {
@@ -579,39 +593,39 @@ export class MappaPage {
   }
   getPosition() {
     this.checkGPSPermission();
-    this.change_arrow_color();
+    this.invert_arrow_color();
     this.map.setView(this.latlong, this.map.getZoom() < 16 ? 19 : this.map.getZoom());
-    this.focus_on_marker = true;
+    this.focus_on_marker = !this.focus_on_marker;
 
   }
   reverse_coords() {
-    // setInterval(() => {
-    //   if (this.latlong != undefined)
-    //     fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
-    //       .then((response) => response.json())
-    //       .then((json) => {
-    //         console.log(json.display_name);
-    //         console.log(json);
-    //         console.log('');
-    //         if (json.extratags.description != undefined) {
-    //           var tags = json.extratags.description.split(';');
-    //           if (tags.length > 10) {
-    //             var new_idee = tags[1].split(':')[1];
-    //             if (new_idee != this.ide_corsia) {
-    //               this.ide_corsia = new_idee;
-    //               this.check_street(tags, json.address.road);
-    //             }
-    //           }
-    //         }
-    //       })
-    // }, 3000);
+    setInterval(() => {
+      if (this.latlong != undefined)
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
+          .then((response) => response.json())
+          .then((json) => {
+            console.log(json.display_name);
+            console.log(json);
+            console.log('');
+            if (json.extratags.description != undefined) {
+              var tags = json.extratags.description.split(';');
+              if (tags.length > 10) {
+                var new_idee = tags[1].split(':')[1];
+                if (new_idee != this.ide_corsia) {
+                  this.ide_corsia = new_idee;
+                  this.check_street(tags, json.address.road);
+                }
+              }
+            }
+          })
+    }, 3000);
   }
   check_street(tags, address) {
     var authoriz_user = this.detailsPage.get_authorization_user();
     var is_authorized = false;
     console.log(tags);
     for (var i = 4; i < 15 && !is_authorized; i++) {
-      if (i==14) {
+      if (i == 14) {
         console.log()
         if ((authoriz_user[i - 4].isChecked && tags[i].split(':')[1] != '0') || (authoriz_user[i - 4].isChecked && tags[9].split(':')[1] != '0'))
           is_authorized = true;
