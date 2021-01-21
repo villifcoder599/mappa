@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { AlertController, IonRadioGroup, Platform } from '@ionic/angular'
+import { DataService } from '../services/data.service';
 @Component({
   selector: 'app-custom-alert',
   templateUrl: './custom-alert.page.html',
@@ -33,8 +34,10 @@ export class CustomAlertPage {
   }];
   selected_radio = this.list_alert[0];
   count; //non mostro subito la preview dell'alert e lo iniz. a -1
-  constructor(private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
+  checkbox_closestreet = this.dataService.getCheckboxclose_street();
+  constructor(private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
     this.platform.ready().then(() => {
+      console.log(this.checkbox_closestreet)
       this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
       this.load_data();
       //this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
@@ -82,9 +85,19 @@ export class CustomAlertPage {
       }, time);
     });
   }
-  load_data(){
+  load_data() {
     var app = JSON.parse(window.localStorage.getItem('selected_radio'));
     if (app != null)
       this.selected_radio = app;
+  }
+  save_data_checkbox() {
+    window.localStorage.setItem('checkboxclose_street', JSON.stringify(this.checkbox_closestreet));
+  }
+  instruction_closeStreet() {
+    if (!this.checkbox_closestreet.isChecked)
+      this.alertController.create({
+        cssClass: '',
+        message: '<div class=' + this.list_alert[0].div_class + '>In prossimita di una corsia riservata verrai avvisato tramite un segnale acustico. Questa opzione puo rallentare l\' applicazione</div>'
+      }).then((alert) => alert.present());
   }
 }

@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
+    <ion-buttons (click)="save_data_checkbox()" slot="start">
       <ion-back-button defaultHref="/"></ion-back-button>
     </ion-buttons>
     <ion-title>Scelta alert</ion-title>
@@ -8,12 +8,28 @@
 </ion-header>
 
 <ion-content>
-  <ion-list lines="none">
-    <ion-radio-group (ionChange)="radioGroupChange($event)" #radio_gruppo>
-      <ion-item *ngFor="let entry of list_alert">
-        <ion-label>{{entry.name}}</ion-label>
-        <ion-radio slot="end" [value]="entry"></ion-radio>
-      </ion-item>
-    </ion-radio-group>
-  </ion-list>
+  <ion-item-group>
+    <ion-item-divider sticky=true> 
+      <ion-label >Personalizzazione alert</ion-label>
+    </ion-item-divider>
+    <ion-list lines="none">
+      <ion-radio-group (ionChange)="radioGroupChange($event)" #radio_gruppo>
+        <ion-item *ngFor="let entry of list_alert">
+          <ion-label>{{entry.name}}</ion-label>
+          <ion-radio slot="end" [value]="entry"></ion-radio>
+        </ion-item>
+      </ion-radio-group>
+    </ion-list>
+  </ion-item-group>
+  <ion-item-group>
+    <ion-item-divider sticky=true> 
+      <ion-label >Avvisi Extra</ion-label>
+    </ion-item-divider>
+    <ion-item lines="none">
+      <ion-label>{{checkbox_closestreet.val}}</ion-label>
+      <ion-checkbox slot="end" [(ngModel)]="checkbox_closestreet.isChecked" (click)="instruction_closeStreet()"></ion-checkbox>
+    </ion-item>
+  </ion-item-group>
+
+  
 </ion-content>
