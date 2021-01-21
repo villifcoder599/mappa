@@ -19,6 +19,7 @@ import { TabsPage } from '../tabs/tabs.page';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { GestureController } from '@ionic/angular';
 import 'hammerjs';
+import 'leaflet-rotatedmarker';
 import { DataService } from '../services/data.service';
 
 /* https://photon.komoot.io alternativa a nominatim API */
@@ -62,7 +63,7 @@ import { DataService } from '../services/data.service';
   6.11) Fare filtro per vista autorizzazioni OK   
   6.12) Controllare simulazione percorso OK
   6.13) Finire di implementare il segnala strade vicino con il setInterval e provare il foreachLayer come ciclo OK
-  6.135) Rivedere salvataggio details
+  6.135) Rivedere salvataggio details e scelta_alert gestione radio
   6.14) Controllare eventuali bug
   */
 @Component({
@@ -174,7 +175,7 @@ export class MappaPage {
         fill: false
       });
       var icon_path, icon_size, iconAnchor
-      if (!this.platform.is('desktop')) {
+      if (this.platform.is('desktop')) {
         icon_path = 'https://cdn3.iconfinder.com/data/icons/glypho-travel/64/gps-navi-arrow-512.png';
         icon_size = [26, 26];
         iconAnchor = [icon_size[0] / 2, icon_size[1] / 2]
@@ -245,7 +246,7 @@ export class MappaPage {
     });
   }
   private onStart() {
-    if (!this.enabled_animation_click_searchbox) {
+    if (!this.enabled_animation_click_searchbox && !this.enabled_big_searchbar) {
       this.searchbarAnimation(0, -this.searchbar_element.nativeElement.offsetHeight - 5);
       this.enabled_animation_click_searchbox = 1;
       //this.searchbar.nativeElement.offsetTop-=5;
@@ -366,7 +367,10 @@ export class MappaPage {
     this.legend.addTo(this.map);
 
   }
-
+  c=0;
+  rotare_marker(){
+    this.marker_position.setRotationAngle(50);
+  }
   search(event) {
     if (this.enabled_ionChange_searchbox) {
       this.addresses = [];
@@ -493,7 +497,7 @@ export class MappaPage {
         }
       },
       err => {
-        alert(err);
+        alert('checkGPS permission');
       }
     );
   }
@@ -506,7 +510,7 @@ export class MappaPage {
               this.askToTurnOnGPS();
             },
             error => {
-              alert(error)
+              alert('requestGPS permission')
             }
           );
       }
@@ -515,7 +519,7 @@ export class MappaPage {
   askToTurnOnGPS() {
     this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(
       () => { },
-      error => alert(JSON.stringify(error)+'ask to turn on gps')
+      error => alert('ask to turn on gps')
     );
   }
   initMap() {
@@ -731,6 +735,7 @@ export class MappaPage {
       (data: DeviceOrientationCompassHeading) => {
         this.degrees = data.trueHeading;
         this.marker_position.setRotationAngle(this.degrees);
+        alert(this.degrees);
       }
     );
   }
