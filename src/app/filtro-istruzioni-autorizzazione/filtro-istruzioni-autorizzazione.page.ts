@@ -13,7 +13,7 @@ export class FiltroIstruzioniAutorizzazionePage implements OnInit {
 
   }
   ionViewDidEnter() {
-    this.datas = (this.dataService.getListAuthorizzation());
+    this.datas = JSON.parse(JSON.stringify(this.dataService.getListAuthorizzation()));
     //var value=this.dataService.getIsChecked();
     //console.log(value);
     //for(var i=0;i<this.datas.length;i++){
