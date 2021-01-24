@@ -45,7 +45,9 @@ export class FiltroIstruzioniAutorizzazionePage {
     //this.dataService.setListAuthorizzation(this.datas);
     this.dataService.setDisplayInfoAutorizz(selected_data);
   }
-  filtraAutorizzazioni() {
-
+  deselezionaTutto() {
+    this.datas.forEach(element => {
+      element.isChecked=false;
+    });
   }
 }
