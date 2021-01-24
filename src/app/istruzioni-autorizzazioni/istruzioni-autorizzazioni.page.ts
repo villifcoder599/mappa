@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { DataService } from '../services/data.service';
-import { FiltroIstruzioniAutorizzazionePage } from '..//filtro-istruzioni-autorizzazione/filtro-istruzioni-autorizzazione.page'
 @Component({
   selector: 'app-istruzioni-autorizzazioni',
   templateUrl: './istruzioni-autorizzazioni.page.html',
@@ -9,7 +8,7 @@ import { FiltroIstruzioniAutorizzazionePage } from '..//filtro-istruzioni-autori
 })
 export class IstruzioniAutorizzazioniPage implements OnInit {
 
-  constructor(private router: Router, private dataService: DataService, private filtro: FiltroIstruzioniAutorizzazionePage) { }
+  constructor(private router: Router, private dataService: DataService) { }
 
   ngOnInit() {
 
