@@ -9,25 +9,34 @@ import { DataService } from '../services/data.service';
 })
 export class DetailsPage {
   autoriz_user = [];
+
   constructor(private dataService: DataService) {
-    this.load_data()
+    this.load_data();
+    //console.log('load_dataDetails')
+  }
+  ngOnInit(){
+    
   }
   ionViewDidEnter() {
-    this.load_data();
+    //this.load_data();
   }
-  update_data() {
+  save_data() {
+    window.localStorage.removeItem('colors_selected');
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
     this.dataService.setListAuthorizzation(this.autoriz_user);
+    console.log(this.dataService.getListAuthorizzation())
   }
-  get_authorization_user() {
-    this.load_data();
-    return this.autoriz_user;
-  }
+  // get_authorization_user() {
+  //   //this.load_data();
+  //   return this.autoriz_user;
+  // }
   load_data() {
     var app = JSON.parse(window.localStorage.getItem('autoriz_user'));
-    console.log(app)
-    if (app != undefined)
+    if (app != undefined){
       this.dataService.setListAuthorizzation(app);
-    this.autoriz_user = JSON.parse(JSON.stringify(this.dataService.getListAuthorizzation()));
+      this.dataService.setLastDatasFiltro(app);
+    }
+    console.log(this.dataService.getListAuthorizzation())
+    this.autoriz_user = this.dataService.getListAuthorizzation();
   }
 }
