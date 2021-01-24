@@ -10,7 +10,7 @@
 
 <ion-content>
   <ion-list lines="none">
-    <ion-item *ngFor="let entry of autoriz_user" (click)="update_data()">
+    <ion-item *ngFor="let entry of autoriz_user" (click)="save_data()">
       <ion-label>{{entry.val}}</ion-label>
       <ion-checkbox slot="end" [(ngModel)]="entry.isChecked"></ion-checkbox>
     </ion-item>
