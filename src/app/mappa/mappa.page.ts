@@ -84,7 +84,7 @@ export class MappaPage {
   enabled_animation_click_searchbox = 0;
   actived_animation_legend = 0;
   delta_searchbar = 105;
-  last_intersection_found;
+  list_intersections_found = [];
   wait_animation = 0;
   timeout;
   pin_search = { marker: null, name: '', coords: [] };
@@ -168,7 +168,7 @@ export class MappaPage {
         color: '#1275ff',
       });
       this.marker_circle_closest_street = L.circle(this.latlong, {
-        radius: 20,
+        radius: 23,
         stroke: false,
         fill: false
       });
@@ -190,7 +190,6 @@ export class MappaPage {
       });
       this.marker_position = L.marker(this.latlong, { icon: navIcon });
       this.nativeAudio.preloadSimple('preAlert_sound', 'assets/sounds/preAlert_sound.mp3');
-
       //this.osm_id = 2361804077;
     })
   }
@@ -210,39 +209,68 @@ export class MappaPage {
     if (!this.actived_animation_legend) {
       this.bottomUpAnimation(this.legend_element, 0, -this.legend_element.offsetHeight - 5);
       this.actived_animation_legend = 1;
-      //this.searchbar.nativeElement.offsetTop-=5;
     }
   }
   check_close_street() {
-    // this.interval_check_close_street = setInterval(() => {
-    this.load_layers_street_close();
-    for (var i = 0; i < this.layers_array_close_street.length; i++) {
-      if (this.layers_array_close_street[i]._pxBounds.intersects(this.bound_circle_marker)) {
-        console.log(this.layers_array_close_street[i]);
-        if (this.last_intersection_found == null) {
-          this.last_intersection_found = this.layers_array_close_street[i];
-          console.log(this.last_intersection_found)
-          this.nativeAudio.play('preAlert_sound');
+    this.interval_check_close_street = setInterval(() => {
+      var list_intersect = [];
+      this.load_layers_street_close();
+      for (var i = 0; i < this.layers_array_close_street.length; i++) {
+        if (this.layers_array_close_street[i]._pxBounds.intersects(this.bound_circle_marker)) {
+          list_intersect.push(this.layers_array_close_street[i].feature.properties.desc)
+
+          var point_layer1 = this.map.layerPointToLatLng(this.layers_array_close_street[i]._pxBounds.max)
+          var point_layer2 = this.map.layerPointToLatLng(this.layers_array_close_street[i]._pxBounds.min)
+          var point_1 = this.map.layerPointToLatLng(this.bound_circle_marker[0])
+          var point_2 = this.map.layerPointToLatLng(this.bound_circle_marker[1])
+          var bounds_layer = [point_layer1, point_layer2]
+          new L.Rectangle([point_1, point_2], { color: "#ff7800", weight: 1 }).addTo(this.map)
+          new L.Rectangle(bounds_layer, { color: "#ff7800", weight: 1 }).addTo(this.map)
+          console.log('Intersezione trovata');
         }
-        else
-          if (this.last_intersection_found.feature.properties.desc != this.layers_array_close_street[i].feature.properties.desc) {
-            //console.log(this.last_intersection_found.feature.properties.desc)
-            console.log(this.layers_array_close_street[i].feature.properties.desc)
-            this.last_intersection_found = this.layers_array_close_street[i];
-            this.nativeAudio.play('preAlert_sound');
-            // var point_layer1 = this.map.layerPointToLatLng(this.layers_array_close_street[i]._pxBounds.max)
-            // var point_layer2 = this.map.layerPointToLatLng(this.layers_array_close_street[i]._pxBounds.min)
-            // var point_1 = this.map.layerPointToLatLng(this.bound_circle_marker[0])
-            // var point_2 = this.map.layerPointToLatLng(this.bound_circle_marker[1])
-            // var bounds_layer = [point_layer1, point_layer2]
-            // new L.Rectangle([point_1, point_2], { color: "#ff7800", weight: 1 }).addTo(this.map)
-            // new L.Rectangle(bounds_layer, { color: "#ff7800", weight: 1 }).addTo(this.map)
-            // console.log('Intersezione trovata');
-            break;
-          }
+      }
+
+      if (this.compareIntersectionsList(list_intersect)) {
+        this.nativeAudio.play('preAlert_sound');
+        console.log('alert vicino')
+      }
+    }, 1024);
+  }
+  compareIntersectionsList(listnew) {
+    var uniqueArray = [];
+    var found = 0;
+    var ok = false;
+    for (var i = 0; i < listnew.length; i++) {
+      if (uniqueArray.indexOf(listnew[i]) == -1) {
+        uniqueArray.push(listnew[i]);
       }
     }
-    //}, 950)
+    uniqueArray.forEach(el => {
+      //console.log(this.list_intersections_found.indexOf(el))
+      if (this.list_intersections_found.indexOf(el) != -1)
+        found++;
+    });
+    //console.log(found)
+    if (uniqueArray.length > 0)
+      if (found > 0) {
+        if (found != this.list_intersections_found.length) {  //diversi dalla lista vecchia
+          if (found == uniqueArray.length) //lista più piccola o uguale alla vecchia lista -> non suono
+            ok = false;
+          else // lista nuova più grande di quella vecchia ->suono
+            ok = true;
+        }
+        else
+          ok = false;
+      }
+      else
+        ok = true;
+    else
+      ok = false;
+    console.log('list old ' + this.list_intersections_found)
+    this.list_intersections_found = uniqueArray;
+    console.log('list new ' + uniqueArray)
+    console.log(ok)
+    return ok;
   }
   foreachLayers() {
     this.map.eachLayer((layer) => {
@@ -372,9 +400,10 @@ export class MappaPage {
       //       '<div class="row"> <i class ="color" style="background:' + colors_selected[i].color.coding + '"></i> ' + '<p id="testo">' +
       //       'corsia ' + colors_selected[i].corsia + ' </p></div>';
       // }
-      div.innerHTML=this.dataService.createLengendHTMLFromColorsSelected(colors_selected);
+      div.innerHTML = this.dataService.createLengendHTMLFromColorsSelected(colors_selected);
       return div;
     })
+    //this.load_layers_street_close()
     this.legend.addTo(this.map);
     var legend = document.getElementsByClassName('info legend');
     this.legend_element = legend[0];
@@ -488,12 +517,14 @@ export class MappaPage {
     console.log(map_colors)
     this.showMap();
     this.create_legend(map_colors);
-    this.draw_multilines(map_colors);
     this.set_width_searchbar();
-    if (this.dataService.getCheckboxclose_street().isChecked)
-      this.check_close_street();
-    else
-      clearInterval(this.interval_check_close_street)
+    this.draw_multilines(map_colors).then((e) => {
+      if (this.dataService.getCheckboxclose_street().isChecked)
+        this.check_close_street();
+      else
+        clearInterval(this.interval_check_close_street)
+    });
+
   }
   set_width_searchbar() {
     var elements = document.getElementsByClassName('leaflet-top leaflet-right');
@@ -547,18 +578,6 @@ export class MappaPage {
       console.log(this.focus_on_marker)
     });
     this.map.on('dragend', (event) => this.drag_end_event(event));
-    // this.map.on('zoomstart', () => {
-    //   this.myZoom.start = this.map.getZoom();
-    // })
-    // this.map.on('zoomend', () => {
-    //   this.myZoom.end = this.map.getZoom();
-    //   var diff = this.myZoom.start - this.myZoom.end;
-    //   if (diff < 0) {
-    //     this.marker_circle_closest_street.setRadius(this.marker_circle.getRadius() * 2);
-    //   } else if (diff > 0) {
-    //     this.marker_circle_closest_street.setRadius(this.marker_circle.getRadius() / 2);
-    //   }
-    // });
     document.addEventListener('ionBackButton', (ev) => {
       this.icon_searchbar_onBack();
     });
@@ -614,7 +633,7 @@ export class MappaPage {
       this.fake_gps();
     }, 50)
   }
-  draw_multilines(colors_selected) {
+  async draw_multilines(colors_selected) {
     fetch("assets/docs/geoJSON_corsie.geojson")
       .then((response) => response.json())
       .then((json) => {
@@ -637,9 +656,11 @@ export class MappaPage {
       });
   }
   load_layers_street_close() {
+
     this.layers_array_close_street = Object.keys(this.myLine_layer._layers).map((key) => this.myLine_layer._layers[key]);
     this.marker_circle_closest_street.setLatLng(this.latlong)
     this.bound_circle_marker = [[this.marker_circle_closest_street._pxBounds.max.x, this.marker_circle_closest_street._pxBounds.max.y], [this.marker_circle_closest_street._pxBounds.min.x, this.marker_circle_closest_street._pxBounds.min.y]];
+
   }
   countLayers() {
     let i = 0;
@@ -690,8 +711,6 @@ export class MappaPage {
       this.marker_position.setLatLng(this.latlong);
       this.marker_circle.setLatLng(this.latlong);
       this.marker_circle.setRadius(this.accuracy);
-      if (this.dataService.getCheckboxclose_street().isChecked)
-        this.check_close_street();
       if (this.focus_on_marker)
         this.map.setView(this.latlong);
     }), ((error) => {
@@ -702,9 +721,9 @@ export class MappaPage {
   getPosition() {
     this.checkGPSPermission();
     this.invert_arrow_color();
-    this.map.setView(this.latlong, this.map.getZoom() < 16 ? 19 : this.map.getZoom());
+    if (this.state_button_arrow.color == 'dark')
+      this.map.setView(this.latlong, 18);
     this.focus_on_marker = !this.focus_on_marker;
-
   }
   reverse_coords() {
     // setInterval(() => {
@@ -712,9 +731,9 @@ export class MappaPage {
     //     fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
     //       .then((response) => response.json())
     //       .then((json) => {
-    //         console.log(json.display_name);
-    //         console.log(json);
-    //         console.log('');
+    //         // console.log(json.display_name);
+    //         // console.log(json);
+    //         // console.log('');
     //         if (json.extratags.description != undefined) {
     //           var tags = json.extratags.description.split(';');
     //           if (tags.length > 10) {
