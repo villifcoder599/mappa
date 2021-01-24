@@ -4,7 +4,10 @@
     width: 50%;
     margin-top: 50px;
 }
-
+.checkbox_space, .chooseColors_space{
+    display: flex;
+    //flex: 1 1 0;
+}
 
 // ion-content,ion-header{
 //     --ion-background-color:#eeeeee;
