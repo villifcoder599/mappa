@@ -25,7 +25,7 @@ import { DataService } from '../services/data.service';
 /* https://photon.komoot.io alternativa a nominatim API */
 /*TODO list:
   1.1)ionic cordova run android --prod per il problema della velocita dell'app
-  3)Colorare in base alle autorizzazioni corsie riservate OK
+  3)Colorare in base alle autorizzazioni corsie riservate OK 
   4)Qualche alert e notifiche per personalizzare OK
   4.1)Fix dragStart dragEnd OK
   4.3)Radio button da correggere (se clicco fuori dal radio non arriva l'input) e non seleziona alert salvato OK
@@ -63,8 +63,10 @@ import { DataService } from '../services/data.service';
   6.11) Fare filtro per vista autorizzazioni OK   
   6.12) Controllare simulazione percorso OK
   6.13) Finire di implementare il segnala strade vicino con il setInterval e provare il foreachLayer come ciclo OK
-  6.135) Rivedere salvataggio details e scelta_alert gestione radio
-  6.14) Controllare eventuali bug
+  6.135) Rivedere salvataggio details,salvataggio e scelta_alert gestione radiobutton, flag animazione searchbar OK
+  6.136) Evidenziare corsie in scelta colore e aggiungere animazione alla legenda OK
+  6.137) Fixare sinergia tra scelta autorizzazione e altri componenti quando non ci sono dati salvati 
+  6.14) Controllare eventuali bug su smartphone
   */
 @Component({
   selector: 'app-mappa',
@@ -75,16 +77,12 @@ export class MappaPage {
   @ViewChild('searchbar', { read: ElementRef }) searchbar_element: ElementRef;
   @ViewChild('map', { read: ElementRef }) map_element: ElementRef;
   @ViewChild('ion_input', { read: ElementRef }) ion_input_element: ElementRef;
-  constant_zoom_leves = [70, 17, 4, -5];
-  myZoom = {
-    start: 19,
-    end: 19
-  };
-  enabled_big_searchbar = 0;
+  legend_element;
+  actived_big_searchbar = 0;
   duration_animation_map = 400;
   icon_name_searchbar = "search";
   enabled_animation_click_searchbox = 0;
-  enabled_ionChange_searchbox = 1;
+  actived_animation_legend = 0;
   delta_searchbar = 105;
   last_intersection_found;
   wait_animation = 0;
@@ -113,7 +111,7 @@ export class MappaPage {
   marker_position: any;
   latlong: any;
   ide_corsia = 0;
-  accuracy = 25;
+  accuracy = 5;
   degrees: number;
   myLine_layer = null;
   actual_layer = [];
@@ -164,18 +162,18 @@ export class MappaPage {
       //window.localStorage.clear();
       //this.latlong = [43.7979122, 11.2441981];
       this.latlong = [43.798245080028536, 11.24322352064662];
-      this.marker_circle = L.circleMarker(this.latlong, {
+      this.marker_circle = L.circle(this.latlong, {
         radius: this.accuracy,
         stroke: false,
         color: '#1275ff',
       });
-      this.marker_circle_closest_street = L.circleMarker(this.latlong, {
-        radius: this.marker_circle.getRadius() * 2.2,
+      this.marker_circle_closest_street = L.circle(this.latlong, {
+        radius: 20,
         stroke: false,
         fill: false
       });
       var icon_path, icon_size, iconAnchor
-      if (this.platform.is('desktop')) {
+      if (!this.platform.is('desktop')) {
         icon_path = 'https://cdn3.iconfinder.com/data/icons/glypho-travel/64/gps-navi-arrow-512.png';
         icon_size = [26, 26];
         iconAnchor = [icon_size[0] / 2, icon_size[1] / 2]
@@ -197,71 +195,82 @@ export class MappaPage {
     })
   }
   ngAfterViewInit() {
-    const moveGesture = this.gestureCtrl.create({
+    this.gestureCtrl.create({
       el: this.searchbar_element.nativeElement,
       threshold: 10,
       direction: 'y',
-      gestureName: 'swipe_bottomup',
-      onStart: (ev) => { this.onStart() },
-    });
-    moveGesture.enable(true);
+      gestureName: 'swipe_bottomup_searchbar',
+      onStart: (ev) => { this.swipe_BottomUpEvent_Searchbar() },
+    }).enable(true)
     fetch('assets/docs/prova.txt').then((response) => response.json()).then((json) => {
       this.percorso = json.coordinates;
     })
   }
+  swipe_BottomUpEvent_Legend() {
+    if (!this.actived_animation_legend) {
+      this.bottomUpAnimation(this.legend_element, 0, -this.legend_element.offsetHeight - 5);
+      this.actived_animation_legend = 1;
+      //this.searchbar.nativeElement.offsetTop-=5;
+    }
+  }
   check_close_street() {
-    this.interval_check_close_street = setInterval(() => {
-      this.load_layers_street_close();
-      for (var i = 0; i < this.layers_array_close_street.length; i++) {
-        if (this.layers_array_close_street[i]._pxBounds.intersects(this.bound_circle_marker)) {
-          //console.log(this.layers_array_close_street[i]);
-          if (this.last_intersection_found == null){
+    // this.interval_check_close_street = setInterval(() => {
+    this.load_layers_street_close();
+    for (var i = 0; i < this.layers_array_close_street.length; i++) {
+      if (this.layers_array_close_street[i]._pxBounds.intersects(this.bound_circle_marker)) {
+        console.log(this.layers_array_close_street[i]);
+        if (this.last_intersection_found == null) {
+          this.last_intersection_found = this.layers_array_close_street[i];
+          console.log(this.last_intersection_found)
+          this.nativeAudio.play('preAlert_sound');
+        }
+        else
+          if (this.last_intersection_found.feature.properties.desc != this.layers_array_close_street[i].feature.properties.desc) {
+            //console.log(this.last_intersection_found.feature.properties.desc)
+            console.log(this.layers_array_close_street[i].feature.properties.desc)
             this.last_intersection_found = this.layers_array_close_street[i];
-            console.log(this.last_intersection_found)
             this.nativeAudio.play('preAlert_sound');
-          }
-          else if (this.last_intersection_found.feature.properties.name.ide_corsia != this.layers_array_close_street[i].feature.properties.name.ide_corsia) {
-            console.log(this.last_intersection_found.feature.properties.name.ide_corsia)
-            console.log(this.layers_array_close_street[i].feature.properties.name.ide_corsia)
-            this.last_intersection_found = this.layers_array_close_street[i];
-            this.nativeAudio.play('preAlert_sound');
+            // var point_layer1 = this.map.layerPointToLatLng(this.layers_array_close_street[i]._pxBounds.max)
+            // var point_layer2 = this.map.layerPointToLatLng(this.layers_array_close_street[i]._pxBounds.min)
+            // var point_1 = this.map.layerPointToLatLng(this.bound_circle_marker[0])
+            // var point_2 = this.map.layerPointToLatLng(this.bound_circle_marker[1])
+            // var bounds_layer = [point_layer1, point_layer2]
+            // new L.Rectangle([point_1, point_2], { color: "#ff7800", weight: 1 }).addTo(this.map)
+            // new L.Rectangle(bounds_layer, { color: "#ff7800", weight: 1 }).addTo(this.map)
+            // console.log('Intersezione trovata');
             break;
           }
-          // var point_layer1 = this.map.layerPointToLatLng(this.layers_array_close_street[i].max)
-          // var point_layer2 = this.map.layerPointToLatLng(this.layers_array_close_street[i].min)
-          // var point_1 = this.map.layerPointToLatLng(this.bound_circle_marker[0])
-          // var point_2 = this.map.layerPointToLatLng(this.bound_circle_marker[1])
-          // var bounds_layer = [point_layer1, point_layer2]
-          // new L.Rectangle([point_1, point_2], { color: "#ff7800", weight: 1 }).addTo(this.map)
-          // new L.Rectangle(bounds_layer, { color: "#ff7800", weight: 1 }).addTo(this.map)
-          // console.log('Intersezione trovata');
-          //break;
-        }
       }
-    }, 950)
+    }
+    //}, 950)
   }
   foreachLayers() {
     this.map.eachLayer((layer) => {
       console.log(layer);
     });
   }
-  private onStart() {
-    if (!this.enabled_animation_click_searchbox && !this.enabled_big_searchbar) {
-      this.searchbarAnimation(0, -this.searchbar_element.nativeElement.offsetHeight - 5);
+  private swipe_BottomUpEvent_Searchbar() {
+    if (!this.actived_big_searchbar) {
+      this.bottomUpAnimation(this.searchbar_element.nativeElement, 0, -this.searchbar_element.nativeElement.offsetHeight - 5);
       this.enabled_animation_click_searchbox = 1;
       //this.searchbar.nativeElement.offsetTop-=5;
     }
   }
   onClickMap() {
-    if (this.enabled_animation_click_searchbox) {
-      this.searchbarAnimation(-this.searchbar_element.nativeElement.offsetHeight - 5, 0);
+    if (!this.actived_big_searchbar && this.enabled_animation_click_searchbox) {
+      this.bottomUpAnimation(this.searchbar_element.nativeElement, -this.searchbar_element.nativeElement.offsetHeight - 5, 0);
       this.enabled_animation_click_searchbox = 0;
+      //this.enabled_big_searchbar
       //this.searchbar.nativeElement.offsetTop+=5;
     }
+    if (this.actived_animation_legend) {
+      this.bottomUpAnimation(this.legend_element, -this.legend_element.offsetHeight - 5, 0)
+      this.actived_animation_legend = 0;
+    }
   }
-  searchbarAnimation(start, end) {
+  bottomUpAnimation(element, start, end) {
     const animation = createAnimation();
-    animation.addElement(this.searchbar_element.nativeElement)
+    animation.addElement(element)
       .easing('ease').duration(300)
       .fromTo('transform', 'translateY(' + start + 'px)', 'translateY(' + end + 'px)');
     animation.play();
@@ -269,23 +278,23 @@ export class MappaPage {
   icon_searchbar_onBack() {
     if (this.icon_name_searchbar == 'arrow-back' && !this.wait_animation) {//!this.enabled_animation_click_searchbox && 
       this.addresses = [];
-      this.enabled_big_searchbar = 0;
+      this.actived_big_searchbar = 0;
       this.ion_input_element.nativeElement.setBlur();
       console.log(this.pin_search)
       if (this.pin_search.marker != null)
         this.set_searchbox_value({ name: this.pin_search.name, coords: this.pin_search.coords })
       else
-        this.set_searchbox_value({name:'',coords:[]})
+        this.set_searchbox_value({ name: '', coords: [] })
       this.show_map_onBack();
     }
   }
   async hide_map_onclick() {
     // console.log('wait_animation ' + this.wait_animation);
     // console.log('big_search ' + this.enabled_big_searchbar)
-    if (!this.wait_animation && !this.enabled_big_searchbar) {
+    if (!this.wait_animation && !this.actived_big_searchbar) {
       this.icon_name_searchbar = 'arrow-back';
-      this.enabled_big_searchbar = 1;
-      this.enabled_animation_click_searchbox = 0;
+      this.actived_big_searchbar = 1;
+      //this.enabled_animation_click_searchbox = 0;
       this.searchbar_element.nativeElement.style.position = 'relative';
       var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
       this.mapAnimation(0, this.map_element.nativeElement.offsetHeight,
@@ -299,7 +308,8 @@ export class MappaPage {
   }
   show_map_onBack() {
     this.map_element.nativeElement.style.display = 'block';
-    this.enabled_animation_click_searchbox = 1;
+    //this.enabled_animation_click_searchbox = 1;
+    this.actived_big_searchbar = 0;
     this.icon_name_searchbar = 'search';
     this.searchbar_element.nativeElement.style.position = 'absolute';
     var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
@@ -356,33 +366,39 @@ export class MappaPage {
       this.map.removeControl(this.legend);
     this.legend.onAdd = (() => {
       var div = L.DomUtil.create('div', 'info legend');
-      for (var i = 0; i < colors_selected.length; i++) {
-        if (colors_selected[i].color.val != 'nullo')
-          div.innerHTML +=
-            '<div class="row"> <i class ="color" style="background:' + colors_selected[i].color.coding + '"></i> ' + '<p id="testo">' +
-            'corsia ' + colors_selected[i].corsia + ' </p></div>';
-      }
+      // for (var i = 0; i < colors_selected.length; i++) {
+      //   if (colors_selected[i].color.val != 'nullo')
+      //     div.innerHTML +=
+      //       '<div class="row"> <i class ="color" style="background:' + colors_selected[i].color.coding + '"></i> ' + '<p id="testo">' +
+      //       'corsia ' + colors_selected[i].corsia + ' </p></div>';
+      // }
+      div.innerHTML=this.dataService.createLengendHTMLFromColorsSelected(colors_selected);
       return div;
     })
     this.legend.addTo(this.map);
-
+    var legend = document.getElementsByClassName('info legend');
+    this.legend_element = legend[0];
+    this.gestureCtrl.create({
+      el: this.legend_element,
+      threshold: 10,
+      direction: 'y',
+      gestureName: 'swipe_bottomup_legend',
+      onStart: (ev) => { this.swipe_BottomUpEvent_Legend() },
+    }).enable(true);
   }
-  c=0;
-  rotare_marker(){
+  rotare_marker() {
     this.marker_position.setRotationAngle(50);
   }
   search(event) {
-    if (this.enabled_ionChange_searchbox) {
-      this.addresses = [];
-      this.enabled_animation_click_searchbox = 0;
-      if (this.timeout != null)
-        clearTimeout(this.timeout)
-      this.timeout = setTimeout(() => {
-        this.search_word(event);
-      }, 800);
-    }
-    else
-      this.enabled_ionChange_searchbox = 1;
+    this.addresses = [];
+    //this.enabled_animation_click_searchbox = 0;
+    if (this.timeout != null)
+      clearTimeout(this.timeout)
+    this.timeout = setTimeout(() => {
+      this.search_word(event);
+    }, 400);
+    //else
+    // this.enabled_ionChange_searchbox = 1;
   }
   search_word(event) {
     var query = event.target.value;
@@ -406,7 +422,7 @@ export class MappaPage {
             }
           }
         }).then(() => {
-          if (this.enabled_big_searchbar == 0)
+          if (this.actived_big_searchbar == 0)
             this.addresses = [];
         })
     }
@@ -426,17 +442,17 @@ export class MappaPage {
   }
   onSelect(address) {
     this.setArrowColor('light');
-    this.enabled_big_searchbar = 0;
+    this.actived_big_searchbar = 0;
     this.show_map_onBack();
     this.set_searchbox_value(address);
     this.remove_list_searchbox();
     this.set_Pin_Marker(this.selectedAddress.coords, true);
-    this.enabled_animation_click_searchbox = 0;
+    //this.enabled_animation_click_searchbox = 0;
   }
   onCancel() {
     this.remove_list_searchbox();
     this.set_searchbox_value({ name: '', coords: [] });
-    if (!this.enabled_big_searchbar)
+    if (!this.actived_big_searchbar)
       this.ion_input_element.nativeElement.setBlur();
     if (this.pin_search.marker != null) {
       this.map.removeLayer(this.pin_search.marker);
@@ -444,7 +460,7 @@ export class MappaPage {
     }
   }
   set_searchbox_value(txt) {
-    this.enabled_ionChange_searchbox = 0;
+    //this.enabled_ionChange_searchbox = 0;
     this.selectedAddress = txt;
     console.log(this.selectedAddress)
   }
@@ -469,6 +485,7 @@ export class MappaPage {
       // this.getPosition();
     }
     var map_colors = this.sel_line_color_page.get_colors();
+    console.log(map_colors)
     this.showMap();
     this.create_legend(map_colors);
     this.draw_multilines(map_colors);
@@ -523,7 +540,7 @@ export class MappaPage {
     );
   }
   initMap() {
-    this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], this.myZoom.start);
+    this.map = L.map('myMap', { zoomControl: false, attributionControl: false }).setView([this.latlong[0], this.latlong[1]], 19);
     this.go_next_map_view();
     this.map.on('dragstart', () => {
       this.focus_on_marker = false;
@@ -537,9 +554,9 @@ export class MappaPage {
     //   this.myZoom.end = this.map.getZoom();
     //   var diff = this.myZoom.start - this.myZoom.end;
     //   if (diff < 0) {
-    //     this.marker_circle.setRadius(this.marker_circle.getRadius() * 2);
+    //     this.marker_circle_closest_street.setRadius(this.marker_circle.getRadius() * 2);
     //   } else if (diff > 0) {
-    //     this.marker_circle.setRadius(this.marker_circle.getRadius() / 2);
+    //     this.marker_circle_closest_street.setRadius(this.marker_circle.getRadius() / 2);
     //   }
     // });
     document.addEventListener('ionBackButton', (ev) => {
@@ -666,14 +683,15 @@ export class MappaPage {
   watch_Position() {
     this.checkGPSPermission();
     navigator.geolocation.watchPosition((position => {
+      //this.enable_device_orientation();
       this.latlong = [position.coords.latitude, position.coords.longitude];
-      this.accuracy = position.coords.accuracy > 15 ? this.accuracy : 15;
+      this.accuracy = position.coords.accuracy;
       this.geolocation.getCurrentPosition;
       this.marker_position.setLatLng(this.latlong);
       this.marker_circle.setLatLng(this.latlong);
       this.marker_circle.setRadius(this.accuracy);
-      if(this.dataService.getCheckboxclose_street().isChecked)
-        this.check_close_street();    
+      if (this.dataService.getCheckboxclose_street().isChecked)
+        this.check_close_street();
       if (this.focus_on_marker)
         this.map.setView(this.latlong);
     }), ((error) => {
@@ -689,29 +707,29 @@ export class MappaPage {
 
   }
   reverse_coords() {
-    setInterval(() => {
-      if (this.latlong != undefined)
-        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
-          .then((response) => response.json())
-          .then((json) => {
-            console.log(json.display_name);
-            console.log(json);
-            console.log('');
-            if (json.extratags.description != undefined) {
-              var tags = json.extratags.description.split(';');
-              if (tags.length > 10) {
-                var new_idee = tags[1].split(':')[1];
-                if (new_idee != this.ide_corsia) {
-                  this.ide_corsia = new_idee;
-                  this.check_street(tags, json.address.road);
-                }
-              }
-            }
-          })
-    }, 3000);
+    // setInterval(() => {
+    //   if (this.latlong != undefined)
+    //     fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
+    //       .then((response) => response.json())
+    //       .then((json) => {
+    //         console.log(json.display_name);
+    //         console.log(json);
+    //         console.log('');
+    //         if (json.extratags.description != undefined) {
+    //           var tags = json.extratags.description.split(';');
+    //           if (tags.length > 10) {
+    //             var new_idee = tags[1].split(':')[1];
+    //             if (new_idee != this.ide_corsia) {
+    //               this.ide_corsia = new_idee;
+    //               this.check_street(tags, json.address.road);
+    //             }
+    //           }
+    //         }
+    //       })
+    // }, 3000);
   }
   check_street(tags, address) {
-    var authoriz_user = this.detailsPage.get_authorization_user();
+    var authoriz_user = this.dataService.getListAuthorizzation();
     var is_authorized = false;
     console.log(tags);
     for (var i = 4; i < 15 && !is_authorized; i++) {
@@ -733,9 +751,10 @@ export class MappaPage {
   enable_device_orientation() {
     this.deviceOrientation.watchHeading().subscribe(
       (data: DeviceOrientationCompassHeading) => {
+        //console.log(data.trueHeading);
         this.degrees = data.trueHeading;
         this.marker_position.setRotationAngle(this.degrees);
-        alert(this.degrees);
+        //alert(data);
       }
     );
   }
