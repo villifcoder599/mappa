@@ -5,80 +5,47 @@ import { DataService } from '../services/data.service'
   templateUrl: './filtro-istruzioni-autorizzazione.page.html',
   styleUrls: ['./filtro-istruzioni-autorizzazione.page.scss'],
 })
-export class FiltroIstruzioniAutorizzazionePage implements OnInit {
+export class FiltroIstruzioniAutorizzazionePage {
   datas = [
 
   ];
+  last_datas;
   constructor(private dataService: DataService) {
-
+    console.log('costruttore filtro')
+    this.datas = this.dataService.getLastDatasFiltro();
+    //this.onBack();
   }
   ionViewDidEnter() {
-    this.datas = JSON.parse(JSON.stringify(this.dataService.getListAuthorizzation()));
+    this.datas = JSON.parse(JSON.stringify(this.dataService.getLastDatasFiltro()));
+
+    // console.log(this.datas)
+    // //this.datas = this.last_datas;
+    // //var selected=this.dataService.getDisplayInfoAutorizz();
+    // this.datas.forEach(el => {
+    //   el.isChecked
+    // });
+    // //console.log(this.datas)
     //var value=this.dataService.getIsChecked();
     //console.log(value);
     //for(var i=0;i<this.datas.length;i++){
     //  this.datas[i].isChecked=value[i];
 
   }
-  ngOnInit() {
-  }
-  inverti_selezione() {
-    this.datas.forEach(el => {
-      el.isChecked = !(el.isChecked);
-    });
-  }
   //0->A 1->B 2->C1 3->C6 4->C7
   onBack() {
-    var selected_data = ['none', 'none', 'none', 'none', 'none'];
-    var change = false;
-    for (var i = 0; i < this.datas.length; i++) {
-      if (this.datas[i].isChecked) {
-        change = true;
-        switch (this.datas[i].id) {
-          case 'bus_urb': {
-            selected_data[0] = 'block';
-            selected_data[1] = 'block';
-            selected_data[2] = 'block';
-            break;
-          }
-          case 'bus_ext':
-          case 'hand':
-          case 'ncc':
-          case 'ff_armate':
-          case 'deroga':
-          case 'taxi': {
-            selected_data[0] = 'block';
-            selected_data[1] = 'block';
-            break;
-          }
-          case 'mezzi_op':
-          case 'pol_socc': {
-            selected_data[0] = 'block';
-            selected_data[1] = 'block';
-            selected_data[4] = 'block';
-            break;
-          }
-          case 'autorizz': {
-            selected_data[1] = 'block';
-            selected_data[4] = 'block';
-            break
-          }
-          case 'soccorso': {
-            selected_data[0] = 'block';
-            selected_data[1] = 'block';
-            selected_data[3] = 'block';
-            selected_data[4] = 'block';
-            break
-          }
-        }
-      }
-    }
-    if (!change)
-      selected_data = ['block', 'block', 'block', 'block', 'block'];
+    this.dataService.setLastDatasFiltro(this.datas);
+    console.log(this.datas)
+    var selected_data = this.dataService.getCorsieFromAutorizzazioni(this.datas);
+    //console.log(selected_data)
+
+    //console.log(selected_data);
     // for(var i=0;i<this.datas.length;i++)
     //   this.dataService.setIsCheckedIndex(this.datas[i].isChecked,i);
     //console.log(selected_data);
     //this.dataService.setListAuthorizzation(this.datas);
     this.dataService.setDisplayInfoAutorizz(selected_data);
+  }
+  filtraAutorizzazioni() {
+
   }
 }
