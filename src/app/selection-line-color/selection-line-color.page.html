@@ -4,18 +4,26 @@
       <ion-back-button defaultHref="/"></ion-back-button>
     </ion-buttons>
     <ion-title>Seleziona colore linee</ion-title>
+    <ion-buttons (click)="consigliatiButton()" slot="end">
+      <ion-button>Consigliati</ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <div id="container_opt">
-  <ion-item lines="none" *ngFor="let entry of colors_selected; let i = index">
-    <ion-label>Colore corsia {{colors_selected[i].corsia}}</ion-label>
-    <ion-select selectedText="{{colors_selected[i].color.val}}" [(ngModel)]="colors_selected[i].color"
-      (ionChange)="update_colors_selected()">
-      <ion-select-option *ngFor="let color of colors" [value]="color">{{color.val}}</ion-select-option>
-    </ion-select>
-  </ion-item>
+    <ion-item (click)="update_colors_selected()" lines="none" *ngFor="let entry of colors_selected; let i = index">
+      <div class="checkbox_space">
+        <ion-checkbox slot="start" [(ngModel)]="entry.isChecked"></ion-checkbox>
+      </div>
+      <ion-label>Colore corsia {{colors_selected[i].corsia}}</ion-label>
+      <ion-select selectedText="{{colors_selected[i].color.val}}" [(ngModel)]="colors_selected[i].color"
+        (ionChange)="update_colors_selected()" style="padding-left: 15%;">
+        <!-- <div class="chooseColors_space" > -->
+        <ion-select-option *ngFor="let color of colors" [value]="color">{{color.val}}</ion-select-option>
+        <!-- </div> -->
+      </ion-select>
+    </ion-item>
   </div>
   <div id="container">
     <div id="preview">
