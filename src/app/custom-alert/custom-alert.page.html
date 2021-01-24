@@ -12,15 +12,17 @@
     <ion-item-divider sticky=true> 
       <ion-label >Personalizzazione alert</ion-label>
     </ion-item-divider>
+  
     <ion-list lines="none">
-      <ion-radio-group (ionChange)="radioGroupChange($event)" #radio_gruppo>
-        <ion-item *ngFor="let entry of list_alert">
+      <ion-radio-group #radio_gruppo>
+        <ion-item *ngFor="let entry of list_alert; let i=index" (click)="radioGroupChange(entry)">
           <ion-label>{{entry.name}}</ion-label>
-          <ion-radio slot="end" [value]="entry"></ion-radio>
+          <ion-radio slot="end" [value]="entry.id"></ion-radio>
         </ion-item>
       </ion-radio-group>
     </ion-list>
   </ion-item-group>
+  
   <ion-item-group>
     <ion-item-divider sticky=true> 
       <ion-label >Avvisi Extra</ion-label>

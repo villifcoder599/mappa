@@ -15,62 +15,66 @@ export class CustomAlertPage {
     css_class: '',
     div_class: 'msg_custom',
     ion_icon_class: '',
-    ion_icon_name: ''
-
+    ion_icon_name: '',
   }, {
     id: 1,
     name: 'Divieto accesso',
     css_class: 'container',
     div_class: "text " + 'msg_custom',
     ion_icon_class: 'alert',
-    ion_icon_name: 'alert'
+    ion_icon_name: 'alert',
   }, {
     id: 2,
     name: 'Quadrato',
     css_class: 'rounded-2-class',
     div_class: 'msg_custom',
     ion_icon_class: 'alert',
-    ion_icon_name: 'alert'
+    ion_icon_name: 'alert',
   }];
-  selected_radio = this.list_alert[0];
   count; //non mostro subito la preview dell'alert e lo iniz. a -1
   checkbox_closestreet = this.dataService.getCheckboxclose_street();
+
   constructor(private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
     this.platform.ready().then(() => {
       console.log(this.checkbox_closestreet)
       this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
       this.load_data();
-      //this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
     })
 
     //this.radio_group.value = this.selected_radio;
   }
-  ionViewDidEnter() {
-    this.count = -1;
-    this.load_data();
-    this.radio_group.value = this.selected_radio;
+  ionViewWillEnter() {
+    // this.count = -1;
+    // this.load_data();
+    // this.radio_group.value = this.selected_radio;
+    //this.radio_group.value = this.dataService.getSelectedFormAlert();
+    this.radioGroupChange(this.dataService.getSelectedFormAlert())
+  }
+  click_item(e){
+    console.log('click');
+    console.log(e)
   }
   ngOnInit() {
 
   }
   radioGroupChange(event) {
-    this.selected_radio = this.list_alert[event.detail.value.id];
-    window.localStorage.setItem('selected_radio', JSON.stringify(this.selected_radio));
-    this.radio_group.value = this.selected_radio;
-    if (this.count > 0)
-      this.show_alert();
-    else
-      this.count++;
+    //console.log(event)
+    this.dataService.setSelectedFormAlert(event);
+    window.localStorage.setItem('selected_radio', JSON.stringify(this.dataService.getSelectedFormAlert()));
+    this.radio_group.value = event.id;
+    //console.log(this.radio_group.value)
+    this.show_alert();
   }
   show_alert() {
-    this.load_data();
-    var div = '<div class="' + this.selected_radio.div_class + '">';
-    var icon = '<ion-icon name="' + this.selected_radio.ion_icon_name + '" class="' + this.selected_radio.ion_icon_class + '"></ion-icon>';
+    // this.selected_radio = this.dataService.getSelectedFormAlert;
+    console.log(this.dataService.getSelectedFormAlert())
+    var div = '<div class="' + this.dataService.getSelectedFormAlert().div_class + '">';
+    var icon = '<ion-icon name="' + this.dataService.getSelectedFormAlert().ion_icon_name + '" class="' + this.dataService.getSelectedFormAlert().ion_icon_class + '"></ion-icon>';
     var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
-    var msg = this.selected_radio.ion_icon_name == '' ? msg = div + txt : msg = div + icon + txt;
+    var msg = this.dataService.getSelectedFormAlert().ion_icon_name == '' ? msg = div + txt : msg = div + icon + txt;
     var time = 1000;
     this.alertController.create({
-      cssClass: this.selected_radio.css_class,
+      cssClass: this.dataService.getSelectedFormAlert().css_class,
       message: msg + (time + 1000) / 1000 + '</div></div>',
     }).then((alert) => {
       this.nativeAudio.play('notification_sound');
@@ -88,8 +92,20 @@ export class CustomAlertPage {
   load_data() {
     var app = JSON.parse(window.localStorage.getItem('selected_radio'));
     if (app != null)
-      this.selected_radio = app;
+      this.dataService.setSelectedFormAlert(app);
+    else
+      this.dataService.setSelectedFormAlert(this.list_alert[0]);
+    //this.selected_radio = this.dataService.getSelectedFormAlert();
+    console.log(this.dataService.getSelectedFormAlert());
+    //this.selected_radio = app;
   }
+  // setSelectedRadio(data){
+  //   this.selected_radio=data;
+  //   this.dataService.setSelectedFormAlert(data);
+  // }
+  // getSelectedRadio(){
+  //   return this.dataService.getSelectedFormAlert()
+  // }
   save_data_checkbox() {
     window.localStorage.setItem('checkboxclose_street', JSON.stringify(this.checkbox_closestreet));
   }
