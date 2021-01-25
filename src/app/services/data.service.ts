@@ -19,14 +19,17 @@ export class DataService {
   ];
   private display_info_autorizz = ['block', 'block', 'block', 'block', 'block']; //0->A 1->B 2->C1 3->C6 4->C7
   private checkboxclose_street = { val: "Corsia riservata nelle vicinanze", isChecked: false };
+  private checkbox_ecoMode = { val: "Riduci frequenza avvisi", isChecked: false };
   private selected_form_alert;
   private lista_filtro = JSON.parse(JSON.stringify(this.list_authorization));
   constructor() {
+    console.log('costruttore service')
     var app = JSON.parse(window.localStorage.getItem('checkboxclose_street'));
     if (app != null)
       this.checkboxclose_street = app;
-    //console.log(this.checkboxclose_street)
-    //this.lista_filtro=JSON.parse(JSON.stringify(this.list_authorization));
+    app = JSON.parse(window.localStorage.getItem('checkbox_ecoMode'));
+    if (app != null)
+      this.checkbox_ecoMode = app;
   }
   setLastDatasFiltro(data = [{ id: '', val: '', isChecked: false }]) {
     this.lista_filtro = data;
@@ -56,16 +59,15 @@ export class DataService {
   }
   setDisplayInfoAutorizz(data = []) {
     this.display_info_autorizz = data;
-    //console.log(data)
   }
   getDisplayInfoAutorizz() {
     return this.display_info_autorizz;
   }
-  setCheckboxclose_street(value = { val: '', isChecked: false }) {
-    this.checkboxclose_street = value;
-  }
   getCheckboxclose_street() {
     return this.checkboxclose_street;
+  }
+  getCheckBoxEcoMode(){
+    return this.checkbox_ecoMode;
   }
   getCorsieFromAutorizzazioni(lista_autorizzazioni = [{ id: '', val: '', isChecked: false }]) {
     var selected_data = ['none', 'none', 'none', 'none', 'none'];
