@@ -12,13 +12,6 @@ export class DetailsPage {
 
   constructor(private dataService: DataService) {
     this.load_data();
-    //console.log('load_dataDetails')
-  }
-  ngOnInit(){
-    
-  }
-  ionViewDidEnter() {
-    //this.load_data();
   }
   save_data() {
     window.localStorage.removeItem('colors_selected');
@@ -26,10 +19,6 @@ export class DetailsPage {
     this.dataService.setListAuthorizzation(this.autoriz_user);
     console.log(this.dataService.getListAuthorizzation())
   }
-  // get_authorization_user() {
-  //   //this.load_data();
-  //   return this.autoriz_user;
-  // }
   load_data() {
     var app = JSON.parse(window.localStorage.getItem('autoriz_user'));
     if (app != undefined){
