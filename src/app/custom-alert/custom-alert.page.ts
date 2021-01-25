@@ -33,24 +33,18 @@ export class CustomAlertPage {
   }];
   count; //non mostro subito la preview dell'alert e lo iniz. a -1
   checkbox_closestreet = this.dataService.getCheckboxclose_street();
-
+  checkbox_ecoMode = this.dataService.getCheckBoxEcoMode();
   constructor(private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
     this.platform.ready().then(() => {
       console.log(this.checkbox_closestreet)
       this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
       this.load_data();
     })
-
-    //this.radio_group.value = this.selected_radio;
   }
   ionViewWillEnter() {
-    // this.count = -1;
-    // this.load_data();
-    // this.radio_group.value = this.selected_radio;
-    //this.radio_group.value = this.dataService.getSelectedFormAlert();
     this.radioGroupChange(this.dataService.getSelectedFormAlert())
   }
-  click_item(e){
+  click_item(e) {
     console.log('click');
     console.log(e)
   }
@@ -58,15 +52,12 @@ export class CustomAlertPage {
 
   }
   radioGroupChange(event) {
-    //console.log(event)
     this.dataService.setSelectedFormAlert(event);
     window.localStorage.setItem('selected_radio', JSON.stringify(this.dataService.getSelectedFormAlert()));
     this.radio_group.value = event.id;
-    //console.log(this.radio_group.value)
     this.show_alert();
   }
   show_alert() {
-    // this.selected_radio = this.dataService.getSelectedFormAlert;
     console.log(this.dataService.getSelectedFormAlert())
     var div = '<div class="' + this.dataService.getSelectedFormAlert().div_class + '">';
     var icon = '<ion-icon name="' + this.dataService.getSelectedFormAlert().ion_icon_name + '" class="' + this.dataService.getSelectedFormAlert().ion_icon_class + '"></ion-icon>';
@@ -95,25 +86,25 @@ export class CustomAlertPage {
       this.dataService.setSelectedFormAlert(app);
     else
       this.dataService.setSelectedFormAlert(this.list_alert[0]);
-    //this.selected_radio = this.dataService.getSelectedFormAlert();
     console.log(this.dataService.getSelectedFormAlert());
-    //this.selected_radio = app;
   }
-  // setSelectedRadio(data){
-  //   this.selected_radio=data;
-  //   this.dataService.setSelectedFormAlert(data);
-  // }
-  // getSelectedRadio(){
-  //   return this.dataService.getSelectedFormAlert()
-  // }
   save_data_checkbox() {
-    window.localStorage.setItem('checkboxclose_street', JSON.stringify(this.checkbox_closestreet));
+     window.localStorage.setItem('checkboxclose_street', JSON.stringify(this.checkbox_closestreet));
+     window.localStorage.setItem('checkbox_ecoMode', JSON.stringify(this.checkbox_ecoMode));
   }
-  instruction_closeStreet() {
+  alert_closeStreet() {
     if (!this.checkbox_closestreet.isChecked)
-      this.alertController.create({
-        cssClass: '',
-        message: '<div class=' + this.list_alert[0].div_class + '>In prossimita di una corsia riservata verrai avvisato tramite un segnale acustico. Questa opzione puo rallentare l\' applicazione</div>'
-      }).then((alert) => alert.present());
+      this.createTextAlertCheckbox('In prossimita di una corsia riservata verrai avvisato tramite un segnale acustico. Questa opzione puo rallentare l\' applicazione e consumare più batteria')
+  }
+  alert_ecoMode() {
+    console.log(this.dataService.getCheckBoxEcoMode())
+    if (!this.checkbox_ecoMode.isChecked)
+      this.createTextAlertCheckbox('Dimunuisce la precisione di localizzazione dell\'applicazione ma viene limitato il consumo di dati e batteria');
+  }
+  createTextAlertCheckbox(txt) {
+    this.alertController.create({
+      cssClass: '',
+      message: '<div class=' + this.list_alert[0].div_class + '>' + txt + '</div>'
+    }).then((alert) => alert.present());
   }
 }
