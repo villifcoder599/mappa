@@ -17,10 +17,12 @@
         <ion-checkbox slot="start" [(ngModel)]="entry.isChecked"></ion-checkbox>
       </div>
       <ion-label>Colore corsia {{colors_selected[i].corsia}}</ion-label>
-      <ion-select selectedText="{{colors_selected[i].color.val}}" [(ngModel)]="colors_selected[i].color"
+      <ion-select (click)="setViewColors(entry.color)" selectedText="{{colors_selected[i].color.val}}" [(ngModel)]="colors_selected[i].color"
         (ionChange)="update_colors_selected()" style="padding-left: 15%;">
         <!-- <div class="chooseColors_space" > -->
-        <ion-select-option *ngFor="let color of colors" [value]="color">{{color.val}}</ion-select-option>
+        <ion-item *ngFor="let color of colors">
+          <ion-select-option #index *ngIf="!color.isChoose" [value]="color" >{{color.val}}</ion-select-option>
+        </ion-item>
         <!-- </div> -->
       </ion-select>
     </ion-item>

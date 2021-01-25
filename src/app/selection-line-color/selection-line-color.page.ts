@@ -8,17 +8,17 @@ import { DataService } from '../services/data.service';
 })
 export class SelectionLineColorPage {
   colors = [
-    { val: 'verde', coding: "#00ff00" },
-    { val: 'giallo', coding: "#ffff00" },
-    { val: 'rosso', coding: "#ff0000" },
-    { val: 'blu', coding: "#0000ff" },
-    { val: 'viola', coding: "#800080" },
-    { val: 'marrone', coding: "#a52a2a" },
-    { val: 'nero', coding: "#000000" },
-    { val: 'magenta', coding: "#ff00ff" },
-    { val: 'rosa', coding: "#ff69b4" },
-    { val: 'azzurro', coding: "#00ffff" },
-    //{ val: 'nullo', coding: "undefinded" }
+    { val: 'verde', coding: "#00ff00", isChoose: true },
+    { val: 'giallo', coding: "#ffff00", isChoose: true },
+    { val: 'rosso', coding: "#ff0000", isChoose: true },
+    { val: 'blu', coding: "#0000ff", isChoose: true },
+    { val: 'viola', coding: "#800080", isChoose: true },
+    { val: 'marrone', coding: "#a52a2a", isChoose: false },
+    { val: 'nero', coding: "#000000", isChoose: false },
+    { val: 'magenta', coding: "#ff00ff", isChoose: false },
+    { val: 'rosa', coding: "#ff69b4", isChoose: false },
+    { val: 'azzurro', coding: "#00ffff", isChoose: false },
+    //{ val: 'nullo', coding: "undefinded", isChoose: false }
   ];
   colors_selected = [
     { corsia: 'A', color: this.colors[0], isChecked: true },
@@ -45,12 +45,10 @@ export class SelectionLineColorPage {
     this.show_preview_legend();
   }
   update_colors_selected() {
-    console.log(this.colors_selected)
     window.localStorage.setItem('colors_selected', JSON.stringify(this.colors_selected));
     this.show_preview_legend();
   }
   show_preview_legend() {
-    console.log(this.colors_selected)
     var element = document.getElementById('preview');
     element.innerHTML = this.dataService.createLengendHTMLFromColorsSelected(this.colors_selected);
   }
@@ -67,5 +65,20 @@ export class SelectionLineColorPage {
       else
         this.colors_selected[i].isChecked = true;
     }
+  }
+  setViewColors(colorSelected) {
+    console.log(this.colors)
+    console.log(colorSelected)
+    this.colors.forEach(element => {
+      element.isChoose = false;
+    });
+    this.colors_selected.forEach(el => {
+      if (el.isChecked) {
+        var index = this.colors.indexOf(el.color);
+        if (index != -1 && el.color != colorSelected)
+          this.colors[index].isChoose = true;
+      }
+    });
+    console.log(this.colors)
   }
 }
