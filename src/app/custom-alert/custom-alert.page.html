@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons (click)="save_data_checkbox()" slot="start">
+    <ion-buttons (click)="save_data_checkbox()"  slot="start">
       <ion-back-button defaultHref="/"></ion-back-button>
     </ion-buttons>
     <ion-title>Scelta alert</ion-title>
@@ -27,11 +27,15 @@
     <ion-item-divider sticky=true> 
       <ion-label >Avvisi Extra</ion-label>
     </ion-item-divider>
-    <ion-item lines="none">
+    <ion-item lines="none" (click)="save_data_checkbox()">
       <ion-label>{{checkbox_closestreet.val}}</ion-label>
-      <ion-checkbox slot="end" [(ngModel)]="checkbox_closestreet.isChecked" (click)="instruction_closeStreet()"></ion-checkbox>
+      <ion-checkbox slot="end" [(ngModel)]="checkbox_closestreet.isChecked" (click)="alert_closeStreet()"></ion-checkbox>
+    </ion-item>
+    <ion-item lines="none" (click)="save_data_checkbox()">
+      <ion-label>{{checkbox_ecoMode.val}}</ion-label>
+      <ion-checkbox slot="end" [(ngModel)]="checkbox_ecoMode.isChecked" (click)="alert_ecoMode()"></ion-checkbox>
     </ion-item>
   </ion-item-group>
-
+  
   
 </ion-content>
