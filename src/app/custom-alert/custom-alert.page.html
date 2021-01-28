@@ -1,18 +1,25 @@
 <ion-header>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+  <!-- Make sure you put this AFTER Leaflet's CSS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
   <ion-toolbar>
-    <ion-buttons (click)="save_data_checkbox()"  slot="start">
+    <ion-buttons (click)="save_data_checkbox()" slot="start">
       <ion-back-button defaultHref="/"></ion-back-button>
     </ion-buttons>
-    <ion-title>Scelta alert</ion-title>
+    <ion-title>Avvisi</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <ion-item-group>
-    <ion-item-divider sticky=true> 
-      <ion-label >Personalizzazione alert</ion-label>
+    <ion-item-divider sticky=true>
+      <ion-label>Personalizzazione alert</ion-label>
     </ion-item-divider>
-  
+
     <ion-list lines="none">
       <ion-radio-group #radio_gruppo>
         <ion-item *ngFor="let entry of list_alert; let i=index" (click)="radioGroupChange(entry)">
@@ -22,20 +29,38 @@
       </ion-radio-group>
     </ion-list>
   </ion-item-group>
-  
+
   <ion-item-group>
-    <ion-item-divider sticky=true> 
-      <ion-label >Avvisi Extra</ion-label>
+    <ion-item-divider sticky=true>
+      <ion-label>Extra</ion-label>
     </ion-item-divider>
-    <ion-item lines="none" (click)="save_data_checkbox()">
-      <ion-label>{{checkbox_closestreet.val}}</ion-label>
-      <ion-checkbox slot="end" [(ngModel)]="checkbox_closestreet.isChecked" (click)="alert_closeStreet()"></ion-checkbox>
-    </ion-item>
     <ion-item lines="none" (click)="save_data_checkbox()">
       <ion-label>{{checkbox_ecoMode.val}}</ion-label>
       <ion-checkbox slot="end" [(ngModel)]="checkbox_ecoMode.isChecked" (click)="alert_ecoMode()"></ion-checkbox>
     </ion-item>
+
+    <ion-item class="div-card" >
+      <div id="content-card-item">
+        <ion-item class="card-item" lines="none">
+          <ion-label>{{checkbox_closestreet.val}}</ion-label>
+          <ion-checkbox slot="end" [(ngModel)]="checkbox_closestreet.isChecked" (click)="alert_closeStreet()">
+          </ion-checkbox>
+        </ion-item>
+        <ion-item [disabled]="!checkbox_closestreet.isChecked" class="card-item" lines="none">
+          <div id="preview_map">
+
+          </div>
+        </ion-item>
+        <ion-item class="card-item" lines="none">
+          <ion-label>Ampiezza Raggio</ion-label>
+          <ion-range [disabled]="!checkbox_closestreet.isChecked" (ionChange)="eventChangeRange()" [(ngModel)]="radius_circle" min="1" max="200" pin color="secondary">
+            
+            <!-- <ion-icon slot="start" size="small" name="contrast"></ion-icon>
+            <ion-icon slot="end" name="contrast"></ion-icon> -->
+          </ion-range>
+        </ion-item>
+      </div>
+    </ion-item>
   </ion-item-group>
-  
-  
+
 </ion-content>

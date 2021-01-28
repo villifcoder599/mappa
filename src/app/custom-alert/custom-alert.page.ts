@@ -2,6 +2,9 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { AlertController, IonRadioGroup, Platform } from '@ionic/angular'
 import { DataService } from '../services/data.service';
+import * as L from 'leaflet';
+import { TextToSpeech } from '@ionic-native/text-to-speech/ngx'
+
 @Component({
   selector: 'app-custom-alert',
   templateUrl: './custom-alert.page.html',
@@ -34,7 +37,11 @@ export class CustomAlertPage {
   count; //non mostro subito la preview dell'alert e lo iniz. a -1
   checkbox_closestreet = this.dataService.getCheckboxclose_street();
   checkbox_ecoMode = this.dataService.getCheckBoxEcoMode();
-  constructor(private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
+  map: any;
+  marker_position;
+  marker_circle;
+  radius_circle = this.dataService.getRadiusMarkerCircle();
+  constructor(private tts: TextToSpeech, private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
     this.platform.ready().then(() => {
       console.log(this.checkbox_closestreet)
       this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
@@ -43,6 +50,23 @@ export class CustomAlertPage {
   }
   ionViewWillEnter() {
     this.radioGroupChange(this.dataService.getSelectedFormAlert())
+    var latlong: any = [43.798245080028536, 11.24322352064662]
+    this.map = L.map('preview_map', { zoomControl: false, attributionControl: false }).setView(latlong, 18);
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(this.map);
+    var navIcon = L.icon({
+      iconUrl: 'https://medall.in/assets/img/map/current_marker_full.png',
+      iconSize: [26, 26],
+      iconAnchor: [13, 13], // point of the icon which will correspond to marker's location
+    });
+    this.marker_position = L.marker(latlong, { icon: navIcon }).addTo(this.map);
+    this.marker_circle = L.circle(latlong, {
+      radius: this.radius_circle,
+      stroke: false,
+      color: '#1275ff',
+    }).addTo(this.map);
+    L.control.scale().addTo(this.map)
   }
   click_item(e) {
     console.log('click');
@@ -57,8 +81,17 @@ export class CustomAlertPage {
     this.radio_group.value = event.id;
     this.show_alert();
   }
+  async sayText(txt) {
+    try {
+      await this.tts.speak({
+        text: txt,
+        locale: 'it-IT'
+      })
+    } catch (e) { alert(e) }
+  }
   show_alert() {
-    console.log(this.dataService.getSelectedFormAlert())
+    //console.log(this.dataService.getSelectedFormAlert())
+    
     var div = '<div class="' + this.dataService.getSelectedFormAlert().div_class + '">';
     var icon = '<ion-icon name="' + this.dataService.getSelectedFormAlert().ion_icon_name + '" class="' + this.dataService.getSelectedFormAlert().ion_icon_class + '"></ion-icon>';
     var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
@@ -68,7 +101,8 @@ export class CustomAlertPage {
       cssClass: this.dataService.getSelectedFormAlert().css_class,
       message: msg + (time + 1000) / 1000 + '</div></div>',
     }).then((alert) => {
-      this.nativeAudio.play('notification_sound');
+      //this.sayText('Sei su una corsia riservata');
+      //this.nativeAudio.play('notification_sound');
       alert.present();
       var intervall = setInterval(() => {
         alert.message = msg + time / 1000 + '</div></div>';
@@ -89,17 +123,23 @@ export class CustomAlertPage {
     console.log(this.dataService.getSelectedFormAlert());
   }
   save_data_checkbox() {
-     window.localStorage.setItem('checkboxclose_street', JSON.stringify(this.checkbox_closestreet));
-     window.localStorage.setItem('checkbox_ecoMode', JSON.stringify(this.checkbox_ecoMode));
+    window.localStorage.setItem('checkboxclose_street', JSON.stringify(this.checkbox_closestreet));
+    window.localStorage.setItem('checkbox_ecoMode', JSON.stringify(this.checkbox_ecoMode));
   }
   alert_closeStreet() {
     if (!this.checkbox_closestreet.isChecked)
-      this.createTextAlertCheckbox('In prossimita di una corsia riservata verrai avvisato tramite un segnale acustico. Questa opzione puo rallentare l\' applicazione e consumare più batteria')
+      this.createTextAlertCheckbox('In prossimita di una corsia riservata verrai avvisato tramite un segnale acustico. Sotto puoi settare il raggio, misurato in metri, entro cui essere avvisato')
   }
   alert_ecoMode() {
-    console.log(this.dataService.getCheckBoxEcoMode())
+    //console.log(this.dataService.getCheckBoxEcoMode())
     if (!this.checkbox_ecoMode.isChecked)
       this.createTextAlertCheckbox('Dimunuisce la precisione di localizzazione dell\'applicazione ma viene limitato il consumo di dati e batteria');
+  
+  }
+  eventChangeRange() {
+    console.log(this.radius_circle);
+    this.marker_circle.setRadius(this.radius_circle);
+    this.dataService.setRadiusMarkerCircle(this.radius_circle);
   }
   createTextAlertCheckbox(txt) {
     this.alertController.create({
