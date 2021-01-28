@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+//import { TextToSpeech } from '@ionic-native/text-to-speech/ngx';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,7 @@ export class DataService {
   private checkbox_ecoMode = { val: "Riduci frequenza avvisi", isChecked: false };
   private selected_form_alert;
   private lista_filtro = JSON.parse(JSON.stringify(this.list_authorization));
+  private radius_marker_circle=40;
   constructor() {
     console.log('costruttore service')
     var app = JSON.parse(window.localStorage.getItem('checkboxclose_street'));
@@ -30,6 +32,16 @@ export class DataService {
     app = JSON.parse(window.localStorage.getItem('checkbox_ecoMode'));
     if (app != null)
       this.checkbox_ecoMode = app;
+    app = JSON.parse(window.localStorage.getItem('radius_marker_circle'));
+    if (app != null)
+      this.radius_marker_circle = app;
+  }
+  getRadiusMarkerCircle() {
+    return this.radius_marker_circle;
+  }
+  setRadiusMarkerCircle(radius) {
+    this.radius_marker_circle = radius;
+    window.localStorage.setItem('radius_marker_circle', JSON.stringify(this.radius_marker_circle));
   }
   setLastDatasFiltro(data = [{ id: '', val: '', isChecked: false }]) {
     this.lista_filtro = data;
@@ -50,13 +62,13 @@ export class DataService {
     this.list_authorization = list;
     this.setLastDatasFiltro(list);
   }
-  getNotListAuthorizzation() {
-    var app = JSON.parse(JSON.stringify(this.getLastDatasFiltro()));
-    app.forEach(el => {
-      el.isChecked = !el.isChecked;
-    });
-    return app;
-  }
+  // getNotListAuthorizzation() {
+  //   var app = JSON.parse(JSON.stringify(this.getLastDatasFiltro()));
+  //   app.forEach(el => {
+  //     el.isChecked = !el.isChecked;
+  //   });
+  //   return app;
+  // }
   setDisplayInfoAutorizz(data = []) {
     this.display_info_autorizz = data;
   }
@@ -66,7 +78,7 @@ export class DataService {
   getCheckboxclose_street() {
     return this.checkboxclose_street;
   }
-  getCheckBoxEcoMode(){
+  getCheckBoxEcoMode() {
     return this.checkbox_ecoMode;
   }
   getCorsieFromAutorizzazioni(lista_autorizzazioni = [{ id: '', val: '', isChecked: false }]) {
