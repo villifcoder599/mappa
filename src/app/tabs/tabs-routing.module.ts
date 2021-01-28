@@ -19,18 +19,18 @@ const routes: Routes = [
         path:'impostazioni',
         loadChildren:()=>import("../impostazioni/impostazioni.module").then(m=>m.ImpostazioniPageModule)
       },
-      {
-        path:'',
-        redirectTo:'/tabs/mappa',
-        pathMatch:'full'
-      }
+      // {
+      //   path:'',
+      //   redirectTo:'/tabs/mappa',
+      //   pathMatch:'full'
+      // }
     ]
   },
-  {
-    path:'',
-    redirectTo:'/tabs/mappa',
-    pathMatch:'full'
-  }
+  // {
+  //   path:'',
+  //   redirectTo:'/tabs/mappa',
+  //   pathMatch:'full'
+  // }
 ];
 
 @NgModule({
