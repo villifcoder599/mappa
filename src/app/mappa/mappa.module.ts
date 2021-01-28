@@ -19,7 +19,7 @@ import { SelectionLineColorPageRoutingModule } from '../selection-line-color/sel
 import { NotificaPage } from '../notifica/notifica.page';
 import { NotificaPageRoutingModule } from '../notifica/notifica-routing.module';
 import { CustomAlertPage } from '../custom-alert/custom-alert.page';
-import { CustomAlertPageRoutingModule } from '../custom-alert/custom-alert-routing.module';
+import { CustomAlertPageModule } from '../custom-alert/custom-alert.module';
 import { DetailsPage } from '../details/details.page';
 import { DetailsPageRoutingModule } from '../details/details-routing.module';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
@@ -27,6 +27,8 @@ import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-nati
 import { File } from '@ionic-native/file/ngx';
 import { IonicGestureConfig } from '../utils/IonicGestureConfig';
 import { LongPressModule } from 'ionic-long-press';
+import { TextToSpeech } from '@ionic-native/text-to-speech/ngx';
+//import { DataService} from '../services/data.service'
 @NgModule({
   imports: [
     CommonModule,
@@ -37,13 +39,13 @@ import { LongPressModule } from 'ionic-long-press';
     HttpClientModule,
     SelectionLineColorPageRoutingModule,
     NotificaPageRoutingModule,
-    CustomAlertPageRoutingModule,
+    CustomAlertPageModule,
     DetailsPageRoutingModule,
     LongPressModule
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
     AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,
-    CustomAlertPage,DetailsPage,AndroidPermissions,File,FileTransfer],
+    CustomAlertPage,DetailsPage,AndroidPermissions,File,FileTransfer,TextToSpeech],
   declarations: [MappaPage],
 })
 export class MappaPageModule { }

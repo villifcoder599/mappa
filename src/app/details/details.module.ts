@@ -7,7 +7,8 @@ import { IonicModule } from '@ionic/angular';
 import { DetailsPageRoutingModule } from './details-routing.module';
 
 import { DetailsPage } from './details.page';
-
+//import { DataService } from '../services/data.service'
+import { TextToSpeech } from '@ionic-native/text-to-speech/ngx'
 @NgModule({
   imports: [
     CommonModule,
@@ -15,6 +16,7 @@ import { DetailsPage } from './details.page';
     IonicModule,
     DetailsPageRoutingModule,
   ],
-  declarations: [DetailsPage]
+  declarations: [DetailsPage],
+  providers:[TextToSpeech]
 })
 export class DetailsPageModule {}
