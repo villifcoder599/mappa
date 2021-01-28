@@ -15,20 +15,20 @@ import { Router } from '@angular/router';
 export class TutorialPage {
   constructor(private platform: Platform, private router: Router) {
     this.platform.ready().then(() => {
-      var slides = document.querySelector('ion-slides');
-      slides.options = {
-        initialSlide: 0,
-        speed: 400,
-        zoom: false,
+        var slides = document.querySelector('ion-slides');
+        slides.options = {
+          initialSlide: 0,
+          speed: 400,
+          zoom: false,
       }
     })
   }
   readyToPlay() {
     window.localStorage.setItem('tutorial', JSON.stringify(true));
-    this.router.navigate(['/tabs/mappa']);
+    this.router.navigateByUrl('/tabs/mappa');
   }
 
-  ionViewDidEnter(){
-    
+  ionViewDidEnter() {
+
   }
 }
