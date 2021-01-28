@@ -7,7 +7,8 @@ import { IonicModule } from '@ionic/angular';
 import { FiltroIstruzioniAutorizzazionePageRoutingModule } from './filtro-istruzioni-autorizzazione-routing.module';
 
 import { FiltroIstruzioniAutorizzazionePage } from './filtro-istruzioni-autorizzazione.page';
-
+//import { DataService } from '../services/data.service'
+import { TextToSpeech } from '@ionic-native/text-to-speech/ngx'
 @NgModule({
   imports: [
     CommonModule,
@@ -15,6 +16,7 @@ import { FiltroIstruzioniAutorizzazionePage } from './filtro-istruzioni-autorizz
     IonicModule,
     FiltroIstruzioniAutorizzazionePageRoutingModule
   ],
-  declarations: [FiltroIstruzioniAutorizzazionePage]
+  declarations: [FiltroIstruzioniAutorizzazionePage],
+  providers:[TextToSpeech]
 })
 export class FiltroIstruzioniAutorizzazionePageModule {}
