@@ -276,8 +276,8 @@ export class MappaPage {
         //       el.isSay = true;
         //   });
         unique_point.forEach(el => {
-          if (!el.isSay) {
-            //this.custom_alert_page.sayText('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
+          if (!el.isSay) {/*el.point.dist>4*/ 
+            this.custom_alert_page.sayText('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
             new L.Marker([el.point.geometry.coordinates[1], el.point.geometry.coordinates[0]]).addTo(this.map);
             console.log('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
           }
@@ -774,7 +774,7 @@ export class MappaPage {
                     //console.log('alert shown: ' + this.last_show_alert.isShown)
                     if (this.dataService.getToggleAlertVisivo())
                       this.custom_alert_page.show_alert();
-                    //this.custom_alert_page.sayAlert(this.last_show_alert.address)
+                    this.custom_alert_page.sayAlert(this.last_show_alert.address)
                     console.log('Sei sulla corsia riservata di ' + this.last_show_alert.address)
                     this.notifica_page.create_notifica(json.address.road, tags[1].split(':')[1].split('0')[0]);
                   }
@@ -815,7 +815,7 @@ export class MappaPage {
         this.marker_position.setRotationAngle(this.degrees);
         //alert(data);
       }
-    );
+    ,(e)=>alert(e));
   }
   send_notifica() {
     this.notifica_page.create_notifica("Via", "B")
