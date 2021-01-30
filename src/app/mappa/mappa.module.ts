@@ -29,6 +29,8 @@ import { IonicGestureConfig } from '../utils/IonicGestureConfig';
 import { LongPressModule } from 'ionic-long-press';
 import { TextToSpeech } from '@ionic-native/text-to-speech/ngx';
 //import { DataService} from '../services/data.service'
+import { BackgroundMode } from '@ionic-native/background-mode/ngx'
+
 @NgModule({
   imports: [
     CommonModule,
@@ -45,7 +47,7 @@ import { TextToSpeech } from '@ionic-native/text-to-speech/ngx';
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
     AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,
-    CustomAlertPage,DetailsPage,AndroidPermissions,File,FileTransfer,TextToSpeech],
+    CustomAlertPage,DetailsPage,AndroidPermissions,File,FileTransfer,TextToSpeech,BackgroundMode],
   declarations: [MappaPage],
 })
 export class MappaPageModule { }

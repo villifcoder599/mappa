@@ -8,7 +8,9 @@ import { CustomAlertPageRoutingModule } from './custom-alert-routing.module';
 import { CustomAlertPage } from './custom-alert.page';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { AlertController, IonRadioGroup } from '@ionic/angular';
-import { TextToSpeech } from '@ionic-native/text-to-speech/ngx'
+import { TextToSpeech } from '@ionic-native/text-to-speech/ngx';
+import { BackgroundMode } from '@ionic-native/background-mode/ngx'
+
 @NgModule({
   imports: [
     CommonModule,
@@ -17,6 +19,6 @@ import { TextToSpeech } from '@ionic-native/text-to-speech/ngx'
     CustomAlertPageRoutingModule
   ],
   declarations: [CustomAlertPage],
-  providers: [NativeAudio, AlertController, IonRadioGroup,  TextToSpeech],
+  providers: [NativeAudio, AlertController, IonRadioGroup,  TextToSpeech, BackgroundMode],
 })
 export class CustomAlertPageModule { }
