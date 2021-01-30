@@ -15,7 +15,7 @@
     <ion-item class="div-card">
       <div id="content-card-item">
         <ion-item class="card-item" lines="none">
-          <ion-label>Avviso corsia riservata nelle vicinanze</ion-label>
+          <ion-label>Prossimità corsia riservata</ion-label>
           <ion-checkbox slot="end" [(ngModel)]="checkbox_nearstreet" (click)="alert_nearStreet()">
           </ion-checkbox>
         </ion-item>
@@ -24,8 +24,8 @@
 
           </div>
         </ion-item>
-        <ion-item class="card-item" lines="none">
-          <ion-label>Ampiezza Raggio</ion-label>
+        <ion-item class="card-item" lines="none" style="border-radius: 0%;">
+          <ion-label>Raggio</ion-label>
           <ion-range [disabled]="!checkbox_nearstreet" (ionChange)="eventChangeRange()"
             [(ngModel)]="radius_circle" min="5" max="200" pin color="secondary">
 
@@ -39,7 +39,7 @@
     <ion-item class="div-card">
       <div id="content-card-item">
         <ion-item class="card-item" >
-          <ion-label>Avvisa se sono su una corsia riservata</ion-label>
+          <ion-label>Percorro corsia riservata</ion-label>
           <ion-checkbox slot="end" [(ngModel)]="checkbox_alertOnCorsia" (click)="alert_alertOnCorsia()">
           </ion-checkbox>
         </ion-item>
@@ -59,9 +59,9 @@
         </ion-item>
       </div>
     </ion-item>
-    <ion-item class="card-item" >
-      <ion-label>Ricevi avvisi anche quando l'app è in background</ion-label>
-      <ion-checkbox slot="end" [(ngModel)]="checkbox_background" (click)="event_checkboxBackground()">
+    <ion-item>
+      <ion-label>Avvisi in background</ion-label>
+      <ion-checkbox slot="end" [(ngModel)]="checkbox_background" (click)="event_checkboxBackground(true)">
       </ion-checkbox>
     </ion-item>
   </ion-item-group>
