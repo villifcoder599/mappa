@@ -115,7 +115,7 @@ export class MappaPage {
   accuracy = 5;
   interval_reverseCoords;
   degrees: number;
-  myLine_layer = null;
+  myLine_layer = new L.GeoJSON;
   actual_layer = [];
   state_button_arrow = {
     color: "light",
@@ -151,12 +151,11 @@ export class MappaPage {
   records_coords;
   //layers_array_close_street;
   bound_circle_marker;
-  interval_check_close_street;
+  interval_near_close_street;
   marker_circle_closest_street;
-  json_file;
+  json_file = [];
   constructor(private dataService: DataService, private gestureCtrl: GestureController, private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
-      console.log('costruttore');
       this.addresses.length = 0;
       //window.localStorage.clear();
       this.latlong = [43.7979122, 11.2441981]
@@ -206,6 +205,7 @@ export class MappaPage {
     fetch('assets/docs/prova.txt').then((response) => response.json()).then((json) => {
       this.percorso = json.coordinates;
     })
+
   }
   swipe_BottomUpEvent_Legend() {
     if (!this.actived_animation_legend) {
@@ -214,33 +214,23 @@ export class MappaPage {
     }
   }
   last_unique_points = [];
+
   async check_near_street() {
     this.marker_circle_closest_street.setRadius(this.dataService.getRadiusMarkerCircle());
-    //console.log(this.json_file.features)
-    //this.interval_check_close_street = setInterval(() => {
-    //console.log(this.layers_array_close_street)
     var list_intersect = [];
     this.marker_circle_closest_street.setLatLng(this.latlong);
-    //this.bound_circle_marker = this.marker_circle_closest_street.getBounds();
     var distance_from_layers = [];
-    //console.log(distance_from_layers)
-    for (var i = 0; i < this.json_file.features.length; i++) {
-      //var multiline1 = this.layers_array_close_street[i].feature.geometry; // coords multiline
-      //distance_from_layers.push(turf.nearestPointOnLine(turf.feature(multiline1), turf.point([this.latlong[1], this.latlong[0]])))
-      //console.log(this.json_file)
-      var multiline1 = this.json_file.features[i].geometry; // coords multiline
+    for (var i = 0; i < this.json_file.length; i++) {
+      var multiline1 = this.json_file[i].feature.geometry; // coords multiline
       distance_from_layers.push({
-        layer: this.json_file.features[i],
+        layer: this.json_file[i].feature,
         point: (turf.nearestPointOnLine(turf.feature(multiline1), turf.point([this.latlong[1], this.latlong[0]]))),
         isSay: false
       })
     }
-    //console.log(distance_from_layers)
     distance_from_layers.forEach(el => {
-      //console.log(el.properties.dist)
       if ((el.point.properties.dist * 1000) < this.dataService.getRadiusMarkerCircle()) {
         list_intersect.push(el)
-        //console.log(el.point.properties.dist)
       }
     });
     const unique_point = [];
@@ -255,74 +245,48 @@ export class MappaPage {
     }
     list_intersect.sort(compare);
     list_intersect.map(x => unique_point.filter(a => a.layer.properties.desc == x.layer.properties.desc).length > 0 ? null : unique_point.push(x));
-    var over_corsia_riservata = false;
-    if (this.last_show_alert == null) {
-      this.last_show_alert = distance_from_layers[0];
-      this.last_show_alert.layer.properties.desc = 'NULLO';
-    }
-    if (unique_point[0] != null && unique_point[0].point.properties.dist * 1000 < 5) { // se rischio di essere sopra una corsia riservata
-      if ((this.last_show_alert.layer.properties.desc.toUpperCase() != unique_point[0].layer.properties.desc.toUpperCase())) {
-        //var over_corsia_riservata = await this.reverse_coords();
-        over_corsia_riservata = false;
-        //if (this.last_show_alert != null)
-        //   console.log(this.last_show_alert.layer.properties.desc.toUpperCase())
-        // console.log(unique_point[0].layer.properties.desc)
-        //console.log(++this.count_request_API)
-        // if (over_corsia_riservata) {
-        /*unique_point[0].isSay = true;
-        this.last_show_alert = unique_point[0];
-        console.log('Sei su una corsia riservata di ' + unique_point[0].layer.properties.desc)
-        */// }
-      }
-    }
+    // if (this.last_show_alert == null) {
+    //   this.last_show_alert = distance_from_layers[0];
+    //   //this.last_show_alert.layer.properties.desc = 'NULLO';
+    // }
+    // if ( && (unique_point[0] != null && unique_point[0].point.properties.dist * 1000 < 5)) { // se rischio di essere sopra una corsia riservata
+    //   if ((this.last_show_alert.layer.properties.desc.toUpperCase() != unique_point[0].layer.properties.desc.toUpperCase())) {
+    //     //var over_corsia_riservata = await this.reverse_coords();
+    //     //console.log(over_corsia_riservata)
+    //     console.log(++this.count_request_API)
+    //     unique_point[0].isSay = true;
+    //     this.last_show_alert = unique_point[0];
+    //     console.log('Sei su una corsia riservata di ' + unique_point[0].layer.properties.desc)
+    //   }
+    // }
     var count = 0;
-    if (!over_corsia_riservata || true) { //se non sono troppo vicino a una corsia riservata
-      if (this.last_unique_points != null) {
-        unique_point.forEach(element => {
-          var pos = this.last_unique_points.map(function (x) { return x.layer.properties.desc }).indexOf(element.layer.properties.desc);
-          if (pos != -1){
-            count++;
-            element.isSay=true;
-          }
-          // if (pos != -1) { //aggiornare point
-          //   element.point = unique_point[pos].point;
-          // }
-          // complex_data.push(element);
-        });
-        //console.log(count);
-        // console.log(this.last_unique_points)
-        // console.log(unique_point)
-        if (count != unique_point.length) {
-          this.last_unique_points = unique_point;
-          if (this.last_show_alert != null)
-            this.last_unique_points.forEach(el => {
-              if (el.layer.properties.desc == this.last_show_alert.layer.properties.desc)
-                el.isSay = true;
-            });
-          unique_point.forEach(el => {
-            console.log(el.isSay)
-            if (!el.isSay) {
-              //this.custom_alert_page.sayText('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
-              new L.Marker([el.point.geometry.coordinates[1], el.point.geometry.coordinates[0]]).addTo(this.map);
-              console.log('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
-              //el.isSay = true;
-            }
-          });
+    if (this.last_unique_points != null) {
+      unique_point.forEach(element => {
+        var pos = this.last_unique_points.map(function (x) { return x.layer.properties.desc }).indexOf(element.layer.properties.desc);
+        if (pos != -1) {
+          count++;
+          element.isSay = true;
         }
+      });
+      if (count != unique_point.length) {
+        this.last_unique_points = unique_point;
+        // if (this.last_show_alert != null)
+        //   this.last_unique_points.forEach(el => {
+        //     if (el.layer.properties.desc == this.last_show_alert.layer.properties.desc)
+        //       el.isSay = true;
+        //   });
+        unique_point.forEach(el => {
+          if (!el.isSay) {
+            //this.custom_alert_page.sayText('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
+            new L.Marker([el.point.geometry.coordinates[1], el.point.geometry.coordinates[0]]).addTo(this.map);
+            console.log('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
+          }
+        });
       }
-    }
-    else {
-      console.log('Corsia Segnalata')
-      console.log(this.last_show_alert);
     }
     this.last_unique_points = unique_point;
-
-    //console.log(this.last_show_alert.layer.properties.desc)
-    //console.log(unique_point[0].layer.properties.desc)
-
-    //}, this.interval_reverseCoords / 3);
   }
-  last_show_alert;
+  last_show_alert = null;
   count_request_API = 0;
   foreachLayers() {
     this.map.eachLayer((layer) => {
@@ -360,7 +324,6 @@ export class MappaPage {
       this.addresses = [];
       this.actived_big_searchbar = 0;
       this.ion_input_element.nativeElement.setBlur();
-      console.log(this.pin_search)
       if (this.pin_search.marker != null)
         this.set_searchbox_value({ name: this.pin_search.name, coords: this.pin_search.coords })
       else
@@ -369,8 +332,7 @@ export class MappaPage {
     }
   }
   async hide_map_onclick() {
-    // console.log('wait_animation ' + this.wait_animation);
-    // console.log('big_search ' + this.enabled_big_searchbar)
+
     if (!this.wait_animation && !this.actived_big_searchbar) {
       this.icon_name_searchbar = 'arrow-back';
       this.actived_big_searchbar = 1;
@@ -530,7 +492,6 @@ export class MappaPage {
   set_searchbox_value(txt) {
     //this.enabled_ionChange_searchbox = 0;
     this.selectedAddress = txt;
-    console.log(this.selectedAddress)
   }
   remove_list_searchbox() {
     this.addresses = [];
@@ -544,7 +505,6 @@ export class MappaPage {
     this.pin_search.marker = L.marker([coords[0], coords[1]]).addTo(this.map);
     this.pin_search.name = this.selectedAddress.name;
     this.pin_search.coords = this.selectedAddress.coords;
-    console.log(this.pin_search);
   }
   ionViewDidEnter() {
     if (this.map == null) {
@@ -553,7 +513,6 @@ export class MappaPage {
       // this.getPosition();
     }
     var map_colors = this.sel_line_color_page.get_colors();
-    console.log(map_colors)
     this.showMap();
     this.create_legend(map_colors);
     this.set_width_searchbar();
@@ -561,14 +520,11 @@ export class MappaPage {
     //   this.interval_reverseCoords = 6000;
     // else
     //   this.interval_reverseCoords = 3000;
-    this.draw_multilines(map_colors)
+    this.draw_multilines(map_colors);
     this.checkGPSPermission();
-    console.log(this.dataService.getRadiusMarkerCircle())
-    // @ts-ignore
-    //var myVector2 = L.polyline([[43.790767908, 11.237783272], [43.790843996, 11.23764115], [43.79161335, 11.236969681], [43.791700424, 11.236950575]]).arrowheads({ frequency: '50px', size: '12px' }).addTo(this.map)
-    // @ts-ignore
-    //var myVector = L.polyline([coords]).arrowheads({ frequency: '50px', size: '12px' }).addTo(this.map)
-
+    console.log(this.dataService.getCheckAlertOnCorsia())
+    if (this.dataService.getCheckAlertOnCorsia())
+      this.reverse_coords();
   }
   set_width_searchbar() {
     var elements = document.getElementsByClassName('leaflet-top leaflet-right');
@@ -624,7 +580,6 @@ export class MappaPage {
     this.go_next_map_view();
     this.map.on('dragstart', () => {
       this.focus_on_marker = false;
-      console.log(this.focus_on_marker)
     });
     this.map.on('dragend', (event) => this.drag_end_event(event));
     document.addEventListener('ionBackButton', (ev) => {
@@ -634,12 +589,9 @@ export class MappaPage {
   }
   long_tap_map() {
     this.map.on("contextmenu", (e) => {
-      console.log(e)
       fetch('https://photon.komoot.io/reverse?lon=' + e.latlng.lng + '&lat=' + e.latlng.lat)
         .then((response) => response.json())
         .then((json) => {
-          console.log("json contextmenu click")
-          console.log(json);
           this.set_searchbox_value({ name: this.create_name_from_json(json.features[0]), coords: [json.features[0].geometry.coordinates[1], json.features[0].geometry.coordinates[0]] })
           this.set_Pin_Marker([e.latlng.lat, e.latlng.lng], false);
         });
@@ -656,17 +608,17 @@ export class MappaPage {
     }
   }
   crea_Strada() {
-    console.log('add event')
     this.test_marker.addEventListener('drag', (e) => {
       this.records_coords += '[' + e.latlng['lat'] + ',' + e.latlng['lng'] + ']' + ',';
-      console.log(this.records_coords);
     })
   }
   metti_Marker() {
     this.test_marker = new L.Marker(this.latlong, { draggable: true }).addTo(this.map);
   }
-  simula_percorso() {
-    var simulazione = setInterval(() => {
+  async simula_percorso() {
+    //var simulazione = setInterval(async () => {
+    while (true && this.count_percorso != -1) {
+      await new Promise(r => setTimeout(r, 50));
       if (this.count_percorso < this.percorso.length) {
         if (this.count_percorso > 500 && this.count_percorso < 3500)
           this.count_percorso += 4;
@@ -675,49 +627,37 @@ export class MappaPage {
         this.latlong = this.percorso[this.count_percorso++];
       }
       else {
-        clearInterval(simulazione);
-        this.count_percorso = 0;
+        //clearInterval(simulazione);
+        this.count_percorso = -1;
       }
-      this.fake_gps();
-    }, 40)
+      var t1 = performance.now();
+      await this.fake_gps();
+      var t2 = performance.now();
+      //if (t2 - t1 > 5)
+      //console.log('tempo impiegato ' + (t2 - t1) + 'ms');
+      //}, 40)
+    }
   }
 
   async draw_multilines(colors_selected) {
-    if (this.json_file == null)
-      fetch("assets/docs/geoJSON_corsie.geojson")
-        .then((response) => response.json())
-        .then((json) => {
-          this.json_file = json;
-        }).then(() => { this.create_multilines(colors_selected) });
-    else
-      this.create_multilines(colors_selected)
-  }
-  create_multilines(colors_selected) {
-    var count = 0;
-    var opacity_value = 0.7;
-    if (this.myLine_layer != null) //remove old layer
-      this.map.removeLayer(this.myLine_layer);
-    function corsiaToNumber(corsia) {
-      switch (corsia) {
-        case 'A': return 0;
-        case 'B': return 1;
-        case 'C1': return 2;
-        case 'C6': return 3;
-        case 'C7': return 4;
-        default: return -1;
-      }
-    }
-    function onEachFeat(feature, layer) {
-      //bind click
-      layer.on({
-        click: ((e) => { console.log(feature.properties) })
-      });
-    }
-    this.myLine_layer = L.geoJSON(this.json_file, {
-      style: () => {
-        var corsia = this.json_file.features[count++].properties.name.ide_corsia.split('0')[0];
-        var n = corsiaToNumber(corsia)
-        if (n != -1 && colors_selected[n].isChecked)
+    fetch("assets/docs/geoJSON_corsie.geojson")
+      .then((response) => response.json())
+      .then((json) => {
+        var count = 0;
+        var opacity_value = 0.7;
+        this.myLine_layer.clearLayers();
+        if (this.myLine_layer != null) //remove old layer
+          this.map.removeLayer(this.myLine_layer);
+        //console.log(json);
+        json.features.forEach(el => {
+          var corsia = el.properties.name.ide_corsia.split('0')[0];
+          var n = corsiaToNumber(corsia);
+          if (n != -1 && colors_selected[n].isChecked) {
+            this.myLine_layer.addData(el)
+          }
+        });
+        this.myLine_layer.setStyle((e) => {
+          var corsia = e.properties.name.ide_corsia.split('0')[0];
           switch (corsia) {
             case 'A': return { color: colors_selected[0].color.coding, opacity: opacity_value };
             case 'B': return { color: colors_selected[1].color.coding, opacity: opacity_value };
@@ -726,19 +666,24 @@ export class MappaPage {
             case 'C7': return { color: colors_selected[4].color.coding, opacity: opacity_value };
             default: return { color: undefined };
           }
-        else return { color: undefined }
-      },
-      onEachFeature: onEachFeat
-    }).addTo(this.map);
-    // if (this.dataService.getCheckboxclose_street().isChecked)
-    //   this.check_close_street();
-    // else
-    //   clearInterval(this.interval_check_close_street)
+        });;
+        this.myLine_layer.addTo(this.map);
+        this.json_file = this.myLine_layer.getLayers();
+        function corsiaToNumber(corsia) {
+          switch (corsia) {
+            case 'A': return 0;
+            case 'B': return 1;
+            case 'C1': return 2;
+            case 'C6': return 3;
+            case 'C7': return 4;
+            default: return -1;
+          }
+        };
+      });
   }
   countLayers() {
     let i = 0;
     this.map.eachLayer(function () { i += 1; });
-    console.log(this.dataService.getRadiusMarkerCircle())
   }
   change_view_map() {
     if (this.actual_layer.length != 0) {
@@ -762,15 +707,18 @@ export class MappaPage {
     this.marker_circle_closest_street.addTo(this.map)
     this.marker_position.addTo(this.map);
   }
-  fake_gps() {
+  async fake_gps() {
     this.marker_position.setLatLng(this.latlong);
     this.marker_circle.setLatLng(this.latlong);
     this.marker_circle.setRadius(this.accuracy);
     if (this.focus_on_marker)
       this.map.setView(this.latlong);
-    if (this.dataService.getCheckboxclose_street().isChecked)
-      this.check_near_street().then(() => { console.log('') })
 
+    if (this.dataService.getCheckboxnear_street()) {
+      await this.check_near_street();
+      // console.log('')
+      // console.log(go)
+    }
   }
   watch_Position() {
     // navigator.geolocation.watchPosition(((position) => {
@@ -792,52 +740,71 @@ export class MappaPage {
     this.watch_Position();
     this.invert_arrow_color();
     if (this.state_button_arrow.color == 'dark')
-      this.map.setView(this.latlong, 16);
+      this.map.setView(this.latlong, this.map.getZoom());
     this.focus_on_marker = !this.focus_on_marker;
   }
-  async reverse_coords(): Promise<boolean> {
-    var result = await
-      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
-        .then((response) => response.json())
-        .then((json) => {
-          let b: boolean = false;
-          if (json.extratags.description != undefined) {
-            var tags = json.extratags.description.split(';');
-            if (tags.length > 10) {
-              var new_idee = tags[1].split(':')[1];
-              if (new_idee != this.ide_corsia) {
-                b = true;
-                this.ide_corsia = new_idee;
-                this.check_street(tags, json.address.road);
+  print_time() {
+    console.log(this.log_time);
+  }
+  log_time = []
+  last_latlong = [0, 0];
+  reverse_coords() {
+    var ok = false;
+    this.interval_reverseCoords = setInterval(async () => {
+      if (ok)
+        this.log_time.push(performance.now() - this.time_start);
+      ok = false;
+      this.time_start = performance.now();
+      if (this.latlong[0] != this.last_latlong[0] || this.latlong[1] != this.last_latlong[1])
+        fetch('https://nominatim.openstreetmap.org/reverse?email=francesco.villi@stud.unifi.it&format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
+          .then((response) => response.json())
+          .then((json) => {
+            ok = true;
+            this.last_latlong = this.latlong;
+            console.log(json)
+            if (json.extratags.description != undefined) {
+              var tags = json.extratags.description.split(';');
+              if (tags.length > 10) {
+                //var new_idee = tags[1].split(':')[1];
+                //if (new_idee != this.ide_corsia) 
+                {
+                  //this.ide_corsia = new_idee;
+                  if (this.last_show_alert != null && this.last_show_alert.address == json.address.road && !this.last_show_alert.isShown) {
+                    this.last_show_alert.isShown = true;
+                    //console.log('alert shown: ' + this.last_show_alert.isShown)
+                    if (this.dataService.getToggleAlertVisivo())
+                      this.custom_alert_page.show_alert();
+                    //this.custom_alert_page.sayAlert(this.last_show_alert.address)
+                    console.log('Sei sulla corsia riservata di ' + this.last_show_alert.address)
+                    this.notifica_page.create_notifica(json.address.road, tags[1].split(':')[1].split('0')[0]);
+                  }
+                  else
+                    this.check_street(tags, json.address.road);
+                }
               }
             }
-          }
-          return b;
-        })
-    console.log(result)
-    return result;
+          }).catch(error => { console.log(error); });
+    }, 2500)
   }
-  check_street(tags, address) {
+  time_start;
+  time_end;
+  check_street(tags, road) {
+    //console.log(road)
     var authoriz_user = this.dataService.getListAuthorizzation();
     var is_authorized = false;
-    console.log(tags);
     for (var i = 4; i < 15 && !is_authorized; i++) {
       if (i == 14) {
-        console.log()
         if ((authoriz_user[i - 4].isChecked && tags[i].split(':')[1] != '0') || (authoriz_user[i - 4].isChecked && tags[9].split(':')[1] != '0'))
           is_authorized = true;
       }
       else if (authoriz_user[i - 4].isChecked && tags[i].split(':')[1] != '0')
         is_authorized = true;
     }
-    if (!is_authorized) {
-      //this.nativeAudio.play('notification_sound');
-      this.custom_alert_page.show_alert();
-      this.notifica_page.create_notifica(address, tags[1].split(':')[1].split('0')[0]);
-      return true;
+    if (!is_authorized && (this.last_show_alert == null || this.last_show_alert.address != road)) {
+      this.last_show_alert = { address: road, isShown: false };
+      this.time_start = performance.now();
+      //if (this.dataService.getToggleAlertVisivo())
     }
-    else
-      return false;
   }
   //Ruota marker_position in base a dove punta il telefono
   enable_device_orientation() {
