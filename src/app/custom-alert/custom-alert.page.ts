@@ -5,7 +5,7 @@ import { DataService } from '../services/data.service';
 import * as L from 'leaflet';
 import { TextToSpeech } from '@ionic-native/text-to-speech/ngx'
 import { trigger, state, style, animate, transition } from '@angular/animations';
-
+import { BackgroundMode } from '@ionic-native/background-mode/ngx'
 @Component({
   selector: 'app-custom-alert',
   templateUrl: './custom-alert.page.html',
@@ -66,21 +66,23 @@ export class CustomAlertPage {
   marker_circle;
   radius_circle = this.dataService.getRadiusMarkerCircle();
 
-  constructor(private tts: TextToSpeech, private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
+  constructor(private backgroundMode: BackgroundMode, private tts: TextToSpeech, private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
     this.platform.ready().then(() => {
       //console.log(this.checkbox_nearstreet)
       this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
       this.load_data();
-
+      var app = JSON.parse(window.localStorage.getItem('checkbox_background'));
+      if (app != null)
+        this.checkbox_background = app;
+       if (this.checkbox_background)
+         this.event_checkboxBackground(false);
     })
   }
   ionViewWillEnter() {
     //this.radioGroupChange(this.dataService.getSelectedFormAlert())
     var latlong: any = [43.798245080028536, 11.24322352064662]
     this.map = L.map('preview_map', { zoomControl: false, attributionControl: false }).setView(latlong, 18);
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(this.map);
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(this.map);
     var navIcon = L.icon({
       iconUrl: 'https://medall.in/assets/img/map/current_marker_full.png',
       iconSize: [26, 26],
@@ -193,25 +195,27 @@ export class CustomAlertPage {
       message: '<div class=' + this.list_alert[0].div_class + '>' + txt + '</div>'
     }).then((alert) => alert.present());
   }
-  event_checkboxBackground() {
-    // if (!this.checkbox_background) {
-    //   alert('attivo')
-    //   this.backgroundMode.on('activate').subscribe(()=>{
-    //     this.backgroundMode.disableWebViewOptimizations();
-    //   })
-    //   this.backgroundMode.enable();
-    //   this.backgroundMode.setDefaults({
-    //     title: 'Corsie riservate Firenze',
-    //     text: 'Segnalazione corsie riservate attiva',
-    //     icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
-    //     //color: String // hex format like 'F14F4D'
-    //     resume: true,
-    //     hidden: false,
-    //     bigText: true
-    //   })
-    // }
-    // else {
-    //   this.backgroundMode.disable()
-    // }
+  event_checkboxBackground(save) {
+    if (save)
+      window.localStorage.setItem('checkbox_background', JSON.stringify(!this.checkbox_background));
+    if (!this.checkbox_background) {
+      this.createTextAlertCheckbox('Ora riceverai gli alert anche quando l\'app è in background');
+      this.backgroundMode.on('activate').subscribe(() => {
+        this.backgroundMode.disableWebViewOptimizations();
+      })
+      this.backgroundMode.enable();
+      this.backgroundMode.setDefaults({
+        title: 'Corsie riservate Firenze',
+        text: 'Segnalazione corsie riservate attiva',
+        icon: 'icon.png', // this will look for icon.png in platforms/android/res/drawable|mipmap
+        //color: String // hex format like 'F14F4D'
+        resume: true,
+        hidden: false,
+        bigText: true
+      })
+    }
+    else {
+      this.backgroundMode.disable()
+    }
   }
 }
