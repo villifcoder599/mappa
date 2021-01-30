@@ -19,22 +19,34 @@ export class DataService {
     { id: 'soccorso', val: 'Soccorso', isChecked: false }
   ];
   private display_info_autorizz = ['block', 'block', 'block', 'block', 'block']; //0->A 1->B 2->C1 3->C6 4->C7
-  private checkboxclose_street = { val: "Corsia riservata nelle vicinanze", isChecked: false };
-  private checkbox_ecoMode = { val: "Riduci frequenza avvisi", isChecked: false };
+  private checkbox_nearstreet =  true ;
+  private checkbox_alertOnCorsia = false ;
+  private toggle_alertVisivo = false;
   private selected_form_alert;
   private lista_filtro = JSON.parse(JSON.stringify(this.list_authorization));
-  private radius_marker_circle=40;
+  private radius_marker_circle = 50;
+  
   constructor() {
     console.log('costruttore service')
-    var app = JSON.parse(window.localStorage.getItem('checkboxclose_street'));
+    var app = JSON.parse(window.localStorage.getItem('checkbox_nearstreet'));
     if (app != null)
-      this.checkboxclose_street = app;
-    app = JSON.parse(window.localStorage.getItem('checkbox_ecoMode'));
+      this.checkbox_nearstreet = app;
+    app = JSON.parse(window.localStorage.getItem('checkbox_alertOnCorsia'));
     if (app != null)
-      this.checkbox_ecoMode = app;
+      this.checkbox_alertOnCorsia = app;
     app = JSON.parse(window.localStorage.getItem('radius_marker_circle'));
     if (app != null)
       this.radius_marker_circle = app;
+    app = JSON.parse(window.localStorage.getItem('toggle_alertVisivo'));
+    if (app != null)
+      this.toggle_alertVisivo = app;
+  }
+  setToggleAlertVisivo(data:boolean){
+    this.toggle_alertVisivo=data;
+    window.localStorage.setItem('toggle_alertVisivo', JSON.stringify(this.toggle_alertVisivo));
+  }
+  getToggleAlertVisivo(){
+    return this.toggle_alertVisivo;
   }
   getRadiusMarkerCircle() {
     return this.radius_marker_circle;
@@ -62,24 +74,25 @@ export class DataService {
     this.list_authorization = list;
     this.setLastDatasFiltro(list);
   }
-  // getNotListAuthorizzation() {
-  //   var app = JSON.parse(JSON.stringify(this.getLastDatasFiltro()));
-  //   app.forEach(el => {
-  //     el.isChecked = !el.isChecked;
-  //   });
-  //   return app;
-  // }
   setDisplayInfoAutorizz(data = []) {
     this.display_info_autorizz = data;
   }
   getDisplayInfoAutorizz() {
     return this.display_info_autorizz;
   }
-  getCheckboxclose_street() {
-    return this.checkboxclose_street;
+  setCheckboxnear_street(data:boolean){
+    this.checkbox_nearstreet=data;
+    window.localStorage.setItem('checkbox_nearstreet', JSON.stringify(this.checkbox_nearstreet));
   }
-  getCheckBoxEcoMode() {
-    return this.checkbox_ecoMode;
+  getCheckboxnear_street() {
+    return this.checkbox_nearstreet;
+  }
+  setCheckAlertOnCorsia(data:boolean) {
+    this.checkbox_alertOnCorsia=data;
+    window.localStorage.setItem('checkbox_alertOnCorsia', JSON.stringify(this.checkbox_alertOnCorsia));
+  }
+  getCheckAlertOnCorsia() {
+    return this.checkbox_alertOnCorsia;
   }
   getCorsieFromAutorizzazioni(lista_autorizzazioni = [{ id: '', val: '', isChecked: false }]) {
     var selected_data = ['none', 'none', 'none', 'none', 'none'];
