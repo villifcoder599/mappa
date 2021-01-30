@@ -1,17 +1,39 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
-import { AlertController, IonRadioGroup, Platform } from '@ionic/angular'
+import { AlertController, IonList, IonRadioGroup, Platform } from '@ionic/angular'
 import { DataService } from '../services/data.service';
 import * as L from 'leaflet';
 import { TextToSpeech } from '@ionic-native/text-to-speech/ngx'
+import { trigger, state, style, animate, transition } from '@angular/animations';
 
 @Component({
   selector: 'app-custom-alert',
   templateUrl: './custom-alert.page.html',
   styleUrls: ['./custom-alert.page.scss'],
+  animations: [
+    trigger('visibilityChanged', [
+      state('false', style({
+        height: '*',
+      })),
+      state('true', style({
+        height: '0px',
+      })),
+      transition('* => *', animate('400ms ease-in-out')),
+    ]),
+    trigger('addAlertVisivoChanged', [
+      state('true', style({
+        height: '*',
+      })),
+      state('false', style({
+        height: '0px',
+      })),
+      transition('* => *', animate('400ms ease-in-out')),
+    ])
+  ]
 })
 export class CustomAlertPage {
   @ViewChild('radio_gruppo') radio_group: IonRadioGroup;
+
   list_alert = [{
     id: 0,
     name: 'Default',
@@ -34,22 +56,26 @@ export class CustomAlertPage {
     ion_icon_class: 'alert',
     ion_icon_name: 'alert',
   }];
-  count; //non mostro subito la preview dell'alert e lo iniz. a -1
-  checkbox_closestreet = this.dataService.getCheckboxclose_street();
-  checkbox_ecoMode = this.dataService.getCheckBoxEcoMode();
+  checkbox_background = true;
+  checkbox_nearstreet = this.dataService.getCheckboxnear_street();
+  checkbox_alertOnCorsia = this.dataService.getCheckAlertOnCorsia();
+  toggle_alertVisivo = this.dataService.getToggleAlertVisivo();
+  display_option_alertOnCorsia = 'none'
   map: any;
   marker_position;
   marker_circle;
   radius_circle = this.dataService.getRadiusMarkerCircle();
+
   constructor(private tts: TextToSpeech, private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
     this.platform.ready().then(() => {
-      console.log(this.checkbox_closestreet)
+      //console.log(this.checkbox_nearstreet)
       this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
       this.load_data();
+
     })
   }
   ionViewWillEnter() {
-    this.radioGroupChange(this.dataService.getSelectedFormAlert())
+    //this.radioGroupChange(this.dataService.getSelectedFormAlert())
     var latlong: any = [43.798245080028536, 11.24322352064662]
     this.map = L.map('preview_map', { zoomControl: false, attributionControl: false }).setView(latlong, 18);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -66,7 +92,9 @@ export class CustomAlertPage {
       stroke: false,
       color: '#1275ff',
     }).addTo(this.map);
-    L.control.scale().addTo(this.map)
+    L.control.scale().addTo(this.map);
+    if (this.toggle_alertVisivo)
+      this.radioGroupChange(this.dataService.getSelectedFormAlert(), false)
   }
   click_item(e) {
     console.log('click');
@@ -75,11 +103,13 @@ export class CustomAlertPage {
   ngOnInit() {
 
   }
-  radioGroupChange(event) {
+  radioGroupChange(event, show) {
+    console.log('evento radiobutton')
     this.dataService.setSelectedFormAlert(event);
     window.localStorage.setItem('selected_radio', JSON.stringify(this.dataService.getSelectedFormAlert()));
     this.radio_group.value = event.id;
-    this.show_alert();
+    if (show != false)
+      this.show_alert();
   }
   async sayText(txt) {
     try {
@@ -87,11 +117,15 @@ export class CustomAlertPage {
         text: txt,
         locale: 'it-IT'
       })
-    } catch (e) { alert(e) }
+    } catch (e) { console.log(e) }
+  }
+  sayAlert(address) {
+    var txt = 'Sei sulla corsia riservata di ' + address;
+    this.sayText(txt);
   }
   show_alert() {
     //console.log(this.dataService.getSelectedFormAlert())
-    
+
     var div = '<div class="' + this.dataService.getSelectedFormAlert().div_class + '">';
     var icon = '<ion-icon name="' + this.dataService.getSelectedFormAlert().ion_icon_name + '" class="' + this.dataService.getSelectedFormAlert().ion_icon_class + '"></ion-icon>';
     var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
@@ -101,8 +135,6 @@ export class CustomAlertPage {
       cssClass: this.dataService.getSelectedFormAlert().css_class,
       message: msg + (time + 1000) / 1000 + '</div></div>',
     }).then((alert) => {
-      //this.sayText('Sei su una corsia riservata');
-      //this.nativeAudio.play('notification_sound');
       alert.present();
       var intervall = setInterval(() => {
         alert.message = msg + time / 1000 + '</div></div>';
@@ -122,19 +154,33 @@ export class CustomAlertPage {
       this.dataService.setSelectedFormAlert(this.list_alert[0]);
     console.log(this.dataService.getSelectedFormAlert());
   }
-  save_data_checkbox() {
-    window.localStorage.setItem('checkboxclose_street', JSON.stringify(this.checkbox_closestreet));
-    window.localStorage.setItem('checkbox_ecoMode', JSON.stringify(this.checkbox_ecoMode));
+
+  alert_nearStreet() {
+    console.log('near street ' + this.checkbox_nearstreet)
+    this.dataService.setCheckboxnear_street(!this.checkbox_nearstreet)
+    if (!this.checkbox_nearstreet)
+      this.createTextAlertCheckbox('In prossimita di una corsia riservata verrai allertato tramite un segnale acustico. Puoi settare la distanza, in metri, entro cui ricevi l\'avviso');
+    else
+      this.createTextAlertCheckbox('Attenzione: non sarai avvertito quando se sei in prossimita di una corsia riservata');
   }
-  alert_closeStreet() {
-    if (!this.checkbox_closestreet.isChecked)
-      this.createTextAlertCheckbox('In prossimita di una corsia riservata verrai avvisato tramite un segnale acustico. Sotto puoi settare il raggio, misurato in metri, entro cui essere avvisato')
+  alert_alertOnCorsia() {
+    console.log('oncorsia ' + this.checkbox_alertOnCorsia)
+    this.dataService.setCheckAlertOnCorsia(!this.checkbox_alertOnCorsia);
+    if (!this.checkbox_alertOnCorsia) {
+      this.createTextAlertCheckbox('Se ti trovi sopra una corsia riservata su cui non hai il premesso verrai avvertito tramite segnale acustico');
+    }
+    else {
+      this.dataService.setToggleAlertVisivo(false);
+      this.createTextAlertCheckbox('Attenzione: non sarai avvertito quando percorrerai una corsia riservata');
+    }
   }
-  alert_ecoMode() {
-    //console.log(this.dataService.getCheckBoxEcoMode())
-    if (!this.checkbox_ecoMode.isChecked)
-      this.createTextAlertCheckbox('Dimunuisce la precisione di localizzazione dell\'applicazione ma viene limitato il consumo di dati e batteria');
-  
+  alert_onAddAlertVisivo() {
+    console.log('toggle ' + this.toggle_alertVisivo)
+    this.dataService.setToggleAlertVisivo(this.toggle_alertVisivo);
+    if (this.toggle_alertVisivo) {
+      this.createTextAlertCheckbox('Oltre all\'avviso acustico comparirà sullo schermo un alert per 3 secondi.\n Sotto puoi scegliere il modello di avviso e cliccando verra mostrata un\'anteprima');
+      this.radioGroupChange(this.dataService.getSelectedFormAlert(), false);
+    }
   }
   eventChangeRange() {
     console.log(this.radius_circle);
@@ -146,5 +192,26 @@ export class CustomAlertPage {
       cssClass: '',
       message: '<div class=' + this.list_alert[0].div_class + '>' + txt + '</div>'
     }).then((alert) => alert.present());
+  }
+  event_checkboxBackground() {
+    // if (!this.checkbox_background) {
+    //   alert('attivo')
+    //   this.backgroundMode.on('activate').subscribe(()=>{
+    //     this.backgroundMode.disableWebViewOptimizations();
+    //   })
+    //   this.backgroundMode.enable();
+    //   this.backgroundMode.setDefaults({
+    //     title: 'Corsie riservate Firenze',
+    //     text: 'Segnalazione corsie riservate attiva',
+    //     icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
+    //     //color: String // hex format like 'F14F4D'
+    //     resume: true,
+    //     hidden: false,
+    //     bigText: true
+    //   })
+    // }
+    // else {
+    //   this.backgroundMode.disable()
+    // }
   }
 }
