@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {Routes,RouterModule, Router} from '@angular/router'
+import {CustomAlertPage} from '../custom-alert/custom-alert.page'
 @Component({
   selector: 'app-impostazioni',
   templateUrl: './impostazioni.page.html',
@@ -7,7 +8,7 @@ import {Routes,RouterModule, Router} from '@angular/router'
 })
 export class ImpostazioniPage implements OnInit {
 
-  constructor(private router:Router) { }
+  constructor(private router:Router,private customAlert:CustomAlertPage) { }
 
   ngOnInit() {
 
@@ -16,6 +17,7 @@ export class ImpostazioniPage implements OnInit {
     this.router.navigate(['details']);
   }
   open_select_line_color_page(){
+    this.customAlert.createTextAlertCheckbox('Attenzione: Se deselezioni le corsie visualizzate su mappa non riceverai gli avvisi relativi a quella corsia')
     this.router.navigate(['selection-line-color']);
   }
   open_custom_alert_page(){

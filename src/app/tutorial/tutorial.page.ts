@@ -6,12 +6,6 @@ import { Router } from '@angular/router';
   templateUrl: './tutorial.page.html',
   styleUrls: ['./tutorial.page.scss'],
 })
-/*
-  slide1->Intro app cosa fa
-  slede2->esempio corsia riservata sulla mappa CSS-> border-radius:5%; magin 50px 0 0
-  slide3->alert e notifiche
-  slide4->Centro notifiche
-*/
 export class TutorialPage {
   constructor(private platform: Platform, private router: Router) {
     this.platform.ready().then(() => {
@@ -28,7 +22,5 @@ export class TutorialPage {
     this.router.navigateByUrl('/tabs/mappa');
   }
 
-  ionViewDidEnter() {
-
-  }
+  ionViewDidEnter() {}
 }

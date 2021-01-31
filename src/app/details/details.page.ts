@@ -14,10 +14,9 @@ export class DetailsPage {
     this.load_data();
   }
   save_data() {
-    window.localStorage.removeItem('colors_selected');
+    //window.localStorage.removeItem('colors_selected');
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
     this.dataService.setListAuthorizzation(this.autoriz_user);
-    console.log(this.dataService.getListAuthorizzation())
   }
   load_data() {
     var app = JSON.parse(window.localStorage.getItem('autoriz_user'));
@@ -25,7 +24,6 @@ export class DetailsPage {
       this.dataService.setListAuthorizzation(app);
       this.dataService.setLastDatasFiltro(app);
     }
-    console.log(this.dataService.getListAuthorizzation())
     this.autoriz_user = this.dataService.getListAuthorizzation();
   }
 }

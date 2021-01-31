@@ -23,12 +23,9 @@ import { CustomAlertPageModule } from '../custom-alert/custom-alert.module';
 import { DetailsPage } from '../details/details.page';
 import { DetailsPageRoutingModule } from '../details/details-routing.module';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
-import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-native/file-transfer/ngx';
-import { File } from '@ionic-native/file/ngx';
 import { IonicGestureConfig } from '../utils/IonicGestureConfig';
 import { LongPressModule } from 'ionic-long-press';
 import { TextToSpeech } from '@ionic-native/text-to-speech/ngx';
-//import { DataService} from '../services/data.service'
 import { BackgroundMode } from '@ionic-native/background-mode/ngx'
 
 @NgModule({
@@ -47,7 +44,7 @@ import { BackgroundMode } from '@ionic-native/background-mode/ngx'
   ],
   providers: [NativeGeocoder, Geolocation, DeviceOrientation, LocalNotifications,
     AlertController, NativeAudio, Diagnostic, LocationAccuracy, SelectionLineColorPage,NotificaPage,
-    CustomAlertPage,DetailsPage,AndroidPermissions,File,FileTransfer,TextToSpeech,BackgroundMode],
+    CustomAlertPage,DetailsPage,AndroidPermissions,TextToSpeech,BackgroundMode],
   declarations: [MappaPage],
 })
 export class MappaPageModule { }

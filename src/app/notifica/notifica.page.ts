@@ -55,7 +55,6 @@ export class NotificaPage {
       .fromTo('height', amountToShift + 'px', '0px');
     animation.play().then(() => {
       this.listaNotifica.splice(i,1);
-      console.log('end animation -> delete item ' + i);
       window.localStorage.setItem("listaNotifica", JSON.stringify(this.listaNotifica));
     });
   }

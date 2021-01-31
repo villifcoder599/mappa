@@ -11,7 +11,6 @@ export class FiltroIstruzioniAutorizzazionePage {
   ];
   last_datas;
   constructor(private dataService: DataService) {
-    console.log('costruttore filtro')
     this.datas = this.dataService.getLastDatasFiltro();
   }
   ionViewDidEnter() {
@@ -20,7 +19,6 @@ export class FiltroIstruzioniAutorizzazionePage {
   //0->A 1->B 2->C1 3->C6 4->C7
   onBack() {
     this.dataService.setLastDatasFiltro(this.datas);
-    console.log(this.datas)
     var selected_data = this.dataService.getCorsieFromAutorizzazioni(this.datas);
     this.dataService.setDisplayInfoAutorizz(selected_data);
   }

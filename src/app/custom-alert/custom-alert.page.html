@@ -27,10 +27,7 @@
         <ion-item class="card-item" lines="none" style="border-radius: 0%;">
           <ion-label>Raggio</ion-label>
           <ion-range [disabled]="!checkbox_nearstreet" (ionChange)="eventChangeRange()"
-            [(ngModel)]="radius_circle" min="5" max="200" pin color="secondary">
-
-            <!-- <ion-icon slot="start" size="small" name="contrast"></ion-icon>
-            <ion-icon slot="end" name="contrast"></ion-icon> -->
+            [(ngModel)]="radius_circle" min="15" max="200" pin color="secondary">
           </ion-range>
         </ion-item>
       </div>

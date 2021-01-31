@@ -20,7 +20,6 @@ export class IstruzioniAutorizzazioniPage implements OnInit {
   //0->A 1->B 2->C1 3->C6 4->C7
   ionViewDidEnter() {
     var view = this.dataService.getDisplayInfoAutorizz();
-    console.log(view)
     var change = false;
     for (var i = 0; i < view.length; i++) {
       if (view[i] == 'block') 

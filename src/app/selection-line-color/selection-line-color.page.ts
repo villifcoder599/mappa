@@ -18,7 +18,6 @@ export class SelectionLineColorPage {
     { val: 'magenta', coding: "#ff00ff", isChoose: false },
     { val: 'rosa', coding: "#ff69b4", isChoose: false },
     { val: 'azzurro', coding: "#00ffff", isChoose: false },
-    //{ val: 'nullo', coding: "undefinded", isChoose: false }
   ];
   colors_selected = [
     { corsia: 'A', color: this.colors[0], isChecked: true },
@@ -28,7 +27,9 @@ export class SelectionLineColorPage {
     { corsia: 'C7', color: this.colors[3], isChecked: true }
   ];
 
-  constructor(private dataService: DataService) { }
+  constructor(private dataService: DataService) { 
+    this.load_data()
+  }
 
   get_colors() {
     this.load_data();
@@ -58,7 +59,6 @@ export class SelectionLineColorPage {
   }
   setColorsCorsieFromAutorizzazioni() {
     var corsie = this.dataService.getCorsieFromAutorizzazioni(this.dataService.getListAuthorizzation());
-    console.log(corsie);
     for (var i = 0; i < this.colors_selected.length; i++) {
       if (corsie[i] == 'block')
         this.colors_selected[i].isChecked = false;
@@ -67,8 +67,6 @@ export class SelectionLineColorPage {
     }
   }
   setViewColors(colorSelected) {
-    console.log(this.colors)
-    console.log(colorSelected)
     this.colors.forEach(element => {
       element.isChoose = false;
     });
@@ -79,6 +77,5 @@ export class SelectionLineColorPage {
           this.colors[index].isChoose = true;
       }
     });
-    console.log(this.colors)
   }
 }

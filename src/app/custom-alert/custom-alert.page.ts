@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { AlertController, IonList, IonRadioGroup, Platform } from '@ionic/angular'
 import { DataService } from '../services/data.service';
 import * as L from 'leaflet';
@@ -66,20 +65,17 @@ export class CustomAlertPage {
   marker_circle;
   radius_circle = this.dataService.getRadiusMarkerCircle();
 
-  constructor(private backgroundMode: BackgroundMode, private tts: TextToSpeech, private dataService: DataService, private alertController: AlertController, private nativeAudio: NativeAudio, private platform: Platform) {
+  constructor(private backgroundMode: BackgroundMode, private tts: TextToSpeech, private dataService: DataService, private alertController: AlertController, private platform: Platform) {
     this.platform.ready().then(() => {
-      //console.log(this.checkbox_nearstreet)
-      this.nativeAudio.preloadSimple('notification_sound', 'assets/sounds/notification_sound.mp3');
       this.load_data();
       var app = JSON.parse(window.localStorage.getItem('checkbox_background'));
       if (app != null)
         this.checkbox_background = app;
-       if (this.checkbox_background)
-         this.event_checkboxBackground(false);
+      if (this.checkbox_background)
+        this.event_checkboxBackground(false);
     })
   }
   ionViewWillEnter() {
-    //this.radioGroupChange(this.dataService.getSelectedFormAlert())
     var latlong: any = [43.798245080028536, 11.24322352064662]
     this.map = L.map('preview_map', { zoomControl: false, attributionControl: false }).setView(latlong, 18);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(this.map);
@@ -98,15 +94,10 @@ export class CustomAlertPage {
     if (this.toggle_alertVisivo)
       this.radioGroupChange(this.dataService.getSelectedFormAlert(), false)
   }
-  click_item(e) {
-    console.log('click');
-    console.log(e)
-  }
   ngOnInit() {
 
   }
   radioGroupChange(event, show) {
-    console.log('evento radiobutton')
     this.dataService.setSelectedFormAlert(event);
     window.localStorage.setItem('selected_radio', JSON.stringify(this.dataService.getSelectedFormAlert()));
     this.radio_group.value = event.id;
@@ -126,8 +117,6 @@ export class CustomAlertPage {
     this.sayText(txt);
   }
   show_alert() {
-    //console.log(this.dataService.getSelectedFormAlert())
-
     var div = '<div class="' + this.dataService.getSelectedFormAlert().div_class + '">';
     var icon = '<ion-icon name="' + this.dataService.getSelectedFormAlert().ion_icon_name + '" class="' + this.dataService.getSelectedFormAlert().ion_icon_class + '"></ion-icon>';
     var txt = 'Non sei autorizzato a transitare su questa corsia<br><div class="sub_msg">';
@@ -154,11 +143,9 @@ export class CustomAlertPage {
       this.dataService.setSelectedFormAlert(app);
     else
       this.dataService.setSelectedFormAlert(this.list_alert[0]);
-    console.log(this.dataService.getSelectedFormAlert());
   }
 
   alert_nearStreet() {
-    console.log('near street ' + this.checkbox_nearstreet)
     this.dataService.setCheckboxnear_street(!this.checkbox_nearstreet)
     if (!this.checkbox_nearstreet)
       this.createTextAlertCheckbox('In prossimita di una corsia riservata verrai allertato tramite un segnale acustico. Puoi settare la distanza, in metri, entro cui ricevi l\'avviso');
@@ -166,7 +153,6 @@ export class CustomAlertPage {
       this.createTextAlertCheckbox('Attenzione: non sarai avvertito quando se sei in prossimita di una corsia riservata');
   }
   alert_alertOnCorsia() {
-    console.log('oncorsia ' + this.checkbox_alertOnCorsia)
     this.dataService.setCheckAlertOnCorsia(!this.checkbox_alertOnCorsia);
     if (!this.checkbox_alertOnCorsia) {
       this.createTextAlertCheckbox('Se ti trovi sopra una corsia riservata su cui non hai il premesso verrai avvertito tramite segnale acustico');
@@ -177,7 +163,6 @@ export class CustomAlertPage {
     }
   }
   alert_onAddAlertVisivo() {
-    console.log('toggle ' + this.toggle_alertVisivo)
     this.dataService.setToggleAlertVisivo(this.toggle_alertVisivo);
     if (this.toggle_alertVisivo) {
       this.createTextAlertCheckbox('Oltre all\'avviso acustico comparirà sullo schermo un alert per 3 secondi.\n Sotto puoi scegliere il modello di avviso e cliccando verra mostrata un\'anteprima');
@@ -185,7 +170,6 @@ export class CustomAlertPage {
     }
   }
   eventChangeRange() {
-    console.log(this.radius_circle);
     this.marker_circle.setRadius(this.radius_circle);
     this.dataService.setRadiusMarkerCircle(this.radius_circle);
   }
@@ -196,10 +180,11 @@ export class CustomAlertPage {
     }).then((alert) => alert.present());
   }
   event_checkboxBackground(save) {
-    if (save)
+    if (save) {
       window.localStorage.setItem('checkbox_background', JSON.stringify(!this.checkbox_background));
-    if (!this.checkbox_background) {
       this.createTextAlertCheckbox('Ora riceverai gli alert anche quando l\'app è in background');
+    }
+    if (!this.checkbox_background || !save) {
       this.backgroundMode.on('activate').subscribe(() => {
         this.backgroundMode.disableWebViewOptimizations();
       })
@@ -207,8 +192,7 @@ export class CustomAlertPage {
       this.backgroundMode.setDefaults({
         title: 'Corsie riservate Firenze',
         text: 'Segnalazione corsie riservate attiva',
-        icon: 'icon.png', // this will look for icon.png in platforms/android/res/drawable|mipmap
-        //color: String // hex format like 'F14F4D'
+        icon: 'icon.png',
         resume: true,
         hidden: false,
         bigText: true

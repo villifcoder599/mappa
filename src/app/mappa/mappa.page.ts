@@ -23,52 +23,7 @@ import 'leaflet-rotatedmarker';
 import * as turf from '@turf/turf';
 import { DataService } from '../services/data.service';
 
-/* https://photon.komoot.io alternativa a nominatim API */
-/*TODO list:
-  1.1)ionic cordova run android --prod per il problema della velocita dell'app
-  3)Colorare in base alle autorizzazioni corsie riservate OK 
-  4)Qualche alert e notifiche per personalizzare OK
-  4.1)Fix dragStart dragEnd OK
-  4.3)Radio button da correggere (se clicco fuori dal radio non arriva l'input) e non seleziona alert salvato OK
-  4.5)alert divieto ovale su smartphone (provare min e max height/width) OK
-  4.6)Mettere l'invia notifica nel codice al posto giusto OK
-  4.7)check_street controlla il .tags che prob. non esiste OK
-  5)Presentazione
-  5.1)__Perfezionare requestAccuracy nel getPosition() (forse fatto ma ricontrolla)
-  5.2)Migliorare vista notifica con messaggio e data in basso a dx OK
-  5.3)Inserire label info e dividere le impostazioni in gruppi Personalizza e Info OK
-  5.4)__Vedere se invio un ulteriore notifica se rimango nella stessa strada appena notificata OK
-  5.5)Aggiungere badge notifiche non lette OK
-  5.6)Creare pagina dettagli corsie riservate e pagina attribuzioni(openstreetmap,etc)
-  5.65)Rivedere file .gpx (ho caricato le strade su openstreetmap) OK
-  5.66)Cambiare controllo delle strade riservate OK
-  5.7)Creare distinzione nel file .gpx delle corsie C1,C6,C7 OK
-  5.8)Aggiungere corsia C1,C6,C7(togliendo C) nella legenda e nella scelta colori di impostazioni OK
-  5.9)Fare preview legenda e alert quando scelgo i settaggi OK
-  6.0)Riorganizza il codice (load_data_from_memory())[spostare metodi nelle classi giuste] OK
-  6.1)__Fix vista ion select (ion select radio button sfocata) OK (su telefono)
-  6.2)Non carica la selezione delle autorizz. sul telefono  OK
-  6.3)Non funziona alert sonoro OK
-  6.4)Bug visivo sullo scorrimento del cancellamento notifica OK
-  6.5)Animazione cancello notifica OK
-  6.6)Inserire searchbox in alto per ricercare le strade OK
-  6.65) Searchbox scompare con swipe in alto OK
-  6.7)Controllare differenza tra pol_soccorso e soccorso (soccorso o 0 o -1) OK
-  6.8)Simulazione percorso per testare funzionamento OK
-  6.9)Searbox più grande? (se sì fare come google maps con animazioni) OK
-  6.95)Cambiare display name del reverse_tap e back button quando torno indietro non cancellare il testo
-       se c'è il pin sulla mappa OK
-      aggiustare searchbar width e far funzionare mouse down e mouse up su telefono OK
-  6.10)Per rendere dinamico l'aggiornamento confrontare ide_corsia del json con ide_corsia del pdf 
-      sul sito di Firenze con l'elenco delle corsie riservate NO 
-  6.11) Fare filtro per vista autorizzazioni OK   
-  6.12) Controllare simulazione percorso OK
-  6.13) Finire di implementare il segnala strade vicino con il setInterval e provare il foreachLayer come ciclo OK
-  6.135) Rivedere salvataggio details,salvataggio e scelta_alert gestione radiobutton, flag animazione searchbar OK
-  6.136) Evidenziare corsie in scelta colore e aggiungere animazione alla legenda OK
-  6.137) Fixare sinergia tra scelta autorizzazione e altri componenti quando non ci sono dati salvati 
-  6.14) Controllare eventuali bug su smartphone
-  */
+
 @Component({
   selector: 'app-mappa',
   templateUrl: './mappa.page.html',
@@ -85,9 +40,8 @@ export class MappaPage {
   enabled_animation_click_searchbox = 0;
   actived_animation_legend = 0;
   delta_searchbar = 105;
-  list_intersections_found = [];
-  wait_animation = 0;
-  timeout;
+  wait_animation = 0; //animatiion search
+  timeout; //searchbar
   pin_search = { marker: null, name: '', coords: [] };
   legend;
   addresses = [{
@@ -111,7 +65,6 @@ export class MappaPage {
   marker_circle: any;
   marker_position: any;
   latlong: any;
-  ide_corsia = 0;
   accuracy = 5;
   interval_reverseCoords;
   degrees: number;
@@ -145,19 +98,24 @@ export class MappaPage {
       maxZoom: 19,
     }
   }];
-  percorso;
-  count_percorso = 0;
-  test_marker;
-  records_coords;
-  //layers_array_close_street;
-  bound_circle_marker;
-  interval_near_close_street;
+  percorso; //per simulazione percorso
+  count_percorso = 0; //per simulazione percorso
   marker_circle_closest_street;
   json_file = [];
-  constructor(private dataService: DataService, private gestureCtrl: GestureController, private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage, private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage, private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio, private localNotifications: LocalNotifications, private alertController: AlertController, private deviceOrientation: DeviceOrientation, private geolocation: Geolocation, private nativeGeocoder: NativeGeocoder, private http: HttpClient, private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
+  last_latlong = [0, 0];
+  last_show_alert = null;
+
+
+  constructor(private dataService: DataService, private gestureCtrl: GestureController,
+    private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage,
+    private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage,
+    private locationAccuracy: LocationAccuracy, private diagnostic: Diagnostic, private nativeAudio: NativeAudio,
+    private localNotifications: LocalNotifications, private alertController: AlertController,
+    private deviceOrientation: DeviceOrientation, private geolocation: Geolocation,
+    private nativeGeocoder: NativeGeocoder, private http: HttpClient,
+    private sel_line_color_page: SelectionLineColorPage, private platform: Platform) {
     this.platform.ready().then(() => {
       this.addresses.length = 0;
-      //window.localStorage.clear();
       this.latlong = [43.7979122, 11.2441981]
       //this.latlong = [43.79828093974891, 11.242809123929726] //viale morgagni corsia riservata
       //this.latlong = [43.798245080028536, 11.24322352064662];
@@ -189,11 +147,9 @@ export class MappaPage {
       });
       this.marker_position = L.marker(this.latlong, { icon: navIcon });
       this.nativeAudio.preloadSimple('preAlert_sound', 'assets/sounds/preAlert_sound.mp3');
-
-
-      //this.osm_id = 2361804077;
     })
   }
+
   ngAfterViewInit() {
     this.gestureCtrl.create({
       el: this.searchbar_element.nativeElement,
@@ -245,20 +201,6 @@ export class MappaPage {
     }
     list_intersect.sort(compare);
     list_intersect.map(x => unique_point.filter(a => a.layer.properties.desc == x.layer.properties.desc).length > 0 ? null : unique_point.push(x));
-    // if (this.last_show_alert == null) {
-    //   this.last_show_alert = distance_from_layers[0];
-    //   //this.last_show_alert.layer.properties.desc = 'NULLO';
-    // }
-    // if ( && (unique_point[0] != null && unique_point[0].point.properties.dist * 1000 < 5)) { // se rischio di essere sopra una corsia riservata
-    //   if ((this.last_show_alert.layer.properties.desc.toUpperCase() != unique_point[0].layer.properties.desc.toUpperCase())) {
-    //     //var over_corsia_riservata = await this.reverse_coords();
-    //     //console.log(over_corsia_riservata)
-    //     console.log(++this.count_request_API)
-    //     unique_point[0].isSay = true;
-    //     this.last_show_alert = unique_point[0];
-    //     console.log('Sei su una corsia riservata di ' + unique_point[0].layer.properties.desc)
-    //   }
-    // }
     var count = 0;
     if (this.last_unique_points != null) {
       unique_point.forEach(element => {
@@ -270,15 +212,10 @@ export class MappaPage {
       });
       if (count != unique_point.length) {
         this.last_unique_points = unique_point;
-        // if (this.last_show_alert != null)
-        //   this.last_unique_points.forEach(el => {
-        //     if (el.layer.properties.desc == this.last_show_alert.layer.properties.desc)
-        //       el.isSay = true;
-        //   });
         unique_point.forEach(el => {
-          if (!el.isSay) {/*el.point.dist>4*/ 
+          if (!el.isSay) {
             this.custom_alert_page.sayText('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
-            new L.Marker([el.point.geometry.coordinates[1], el.point.geometry.coordinates[0]]).addTo(this.map);
+            //new L.Marker([el.point.geometry.coordinates[1], el.point.geometry.coordinates[0]]).addTo(this.map);
             console.log('Rilevata corsia riservata a ' + Math.round((el.point.properties.dist) * 1000) + ' metri da qui, in ' + el.layer.properties.desc)
           }
         });
@@ -286,26 +223,17 @@ export class MappaPage {
     }
     this.last_unique_points = unique_point;
   }
-  last_show_alert = null;
-  count_request_API = 0;
-  foreachLayers() {
-    this.map.eachLayer((layer) => {
-      console.log(layer);
-    });
-  }
+
   private swipe_BottomUpEvent_Searchbar() {
     if (!this.actived_big_searchbar) {
       this.bottomUpAnimation(this.searchbar_element.nativeElement, 0, -this.searchbar_element.nativeElement.offsetHeight - 5);
       this.enabled_animation_click_searchbox = 1;
-      //this.searchbar.nativeElement.offsetTop-=5;
     }
   }
   onClickMap() {
     if (!this.actived_big_searchbar && this.enabled_animation_click_searchbox) {
       this.bottomUpAnimation(this.searchbar_element.nativeElement, -this.searchbar_element.nativeElement.offsetHeight - 5, 0);
       this.enabled_animation_click_searchbox = 0;
-      //this.enabled_big_searchbar
-      //this.searchbar.nativeElement.offsetTop+=5;
     }
     if (this.actived_animation_legend) {
       this.bottomUpAnimation(this.legend_element, -this.legend_element.offsetHeight - 5, 0)
@@ -336,7 +264,6 @@ export class MappaPage {
     if (!this.wait_animation && !this.actived_big_searchbar) {
       this.icon_name_searchbar = 'arrow-back';
       this.actived_big_searchbar = 1;
-      //this.enabled_animation_click_searchbox = 0;
       this.searchbar_element.nativeElement.style.position = 'relative';
       var margin_right = parseFloat(window.getComputedStyle(this.searchbar_element.nativeElement).getPropertyValue('margin-right'));
       this.mapAnimation(0, this.map_element.nativeElement.offsetHeight,
@@ -350,7 +277,6 @@ export class MappaPage {
   }
   show_map_onBack() {
     this.map_element.nativeElement.style.display = 'block';
-    //this.enabled_animation_click_searchbox = 1;
     this.actived_big_searchbar = 0;
     this.icon_name_searchbar = 'search';
     this.searchbar_element.nativeElement.style.position = 'absolute';
@@ -404,7 +330,6 @@ export class MappaPage {
       div.innerHTML = this.dataService.createLengendHTMLFromColorsSelected(colors_selected);
       return div;
     })
-    //this.load_layers_street_close()
     this.legend.addTo(this.map);
     var legend = document.getElementsByClassName('info legend');
     this.legend_element = legend[0];
@@ -416,19 +341,13 @@ export class MappaPage {
       onStart: (ev) => { this.swipe_BottomUpEvent_Legend() },
     }).enable(true);
   }
-  rotare_marker() {
-    this.marker_position.setRotationAngle(50);
-  }
   search(event) {
     this.addresses = [];
-    //this.enabled_animation_click_searchbox = 0;
     if (this.timeout != null)
       clearTimeout(this.timeout)
     this.timeout = setTimeout(() => {
       this.search_word(event);
     }, 400);
-    //else
-    // this.enabled_ionChange_searchbox = 1;
   }
   search_word(event) {
     var query = event.target.value;
@@ -477,7 +396,6 @@ export class MappaPage {
     this.set_searchbox_value(address);
     this.remove_list_searchbox();
     this.set_Pin_Marker(this.selectedAddress.coords, true);
-    //this.enabled_animation_click_searchbox = 0;
   }
   onCancel() {
     this.remove_list_searchbox();
@@ -490,7 +408,6 @@ export class MappaPage {
     }
   }
   set_searchbox_value(txt) {
-    //this.enabled_ionChange_searchbox = 0;
     this.selectedAddress = txt;
   }
   remove_list_searchbox() {
@@ -510,19 +427,13 @@ export class MappaPage {
     if (this.map == null) {
       this.initMap();
       this.enable_device_orientation();
-      // this.getPosition();
     }
     var map_colors = this.sel_line_color_page.get_colors();
     this.showMap();
     this.create_legend(map_colors);
     this.set_width_searchbar();
-    // if (this.dataService.getCheckBoxEcoMode().isChecked)
-    //   this.interval_reverseCoords = 6000;
-    // else
-    //   this.interval_reverseCoords = 3000;
     this.draw_multilines(map_colors);
     this.checkGPSPermission();
-    console.log(this.dataService.getCheckAlertOnCorsia())
     if (this.dataService.getCheckAlertOnCorsia())
       this.reverse_coords();
   }
@@ -541,13 +452,7 @@ export class MappaPage {
           this.requestGPSPermission();
         }
       },
-      err => {
-        // this.marker_position.addTo(this.map);
-        // this.marker_circle.addTo(this.map);
-        // this.getPosition();
-
-        // alert('checkGPS permission');
-      }
+      err => { }
     );
   }
   requestGPSPermission() {
@@ -599,7 +504,6 @@ export class MappaPage {
   }
   drag_end_event(event) {
     if (event.distance > 80 && this.state_button_arrow.state) {
-      //this.focus_on_marker = false;
       this.invert_arrow_color();
     }
     if (this.state_button_arrow.state) {
@@ -607,16 +511,8 @@ export class MappaPage {
       this.focus_on_marker = true;
     }
   }
-  crea_Strada() {
-    this.test_marker.addEventListener('drag', (e) => {
-      this.records_coords += '[' + e.latlng['lat'] + ',' + e.latlng['lng'] + ']' + ',';
-    })
-  }
-  metti_Marker() {
-    this.test_marker = new L.Marker(this.latlong, { draggable: true }).addTo(this.map);
-  }
+
   async simula_percorso() {
-    //var simulazione = setInterval(async () => {
     while (true && this.count_percorso != -1) {
       await new Promise(r => setTimeout(r, 50));
       if (this.count_percorso < this.percorso.length) {
@@ -627,15 +523,9 @@ export class MappaPage {
         this.latlong = this.percorso[this.count_percorso++];
       }
       else {
-        //clearInterval(simulazione);
         this.count_percorso = -1;
       }
-      var t1 = performance.now();
       await this.fake_gps();
-      var t2 = performance.now();
-      //if (t2 - t1 > 5)
-      //console.log('tempo impiegato ' + (t2 - t1) + 'ms');
-      //}, 40)
     }
   }
 
@@ -643,12 +533,10 @@ export class MappaPage {
     fetch("assets/docs/geoJSON_corsie.geojson")
       .then((response) => response.json())
       .then((json) => {
-        var count = 0;
         var opacity_value = 0.7;
         this.myLine_layer.clearLayers();
         if (this.myLine_layer != null) //remove old layer
           this.map.removeLayer(this.myLine_layer);
-        //console.log(json);
         json.features.forEach(el => {
           var corsia = el.properties.name.ide_corsia.split('0')[0];
           var n = corsiaToNumber(corsia);
@@ -701,8 +589,6 @@ export class MappaPage {
     });
   }
   showMap() {
-    //this.watch_Position();
-    //this.reverse_coords();
     this.marker_circle.addTo(this.map);
     this.marker_circle_closest_street.addTo(this.map)
     this.marker_position.addTo(this.map);
@@ -716,25 +602,24 @@ export class MappaPage {
 
     if (this.dataService.getCheckboxnear_street()) {
       await this.check_near_street();
-      // console.log('')
-      // console.log(go)
     }
   }
   watch_Position() {
-    // navigator.geolocation.watchPosition(((position) => {
-    //   this.enable_device_orientation();
-    //   this.latlong = [position.coords.latitude, position.coords.longitude];
-    //   console.log(this.latlong)
-    //   this.accuracy = position.coords.accuracy;
-    //   this.marker_position.setLatLng(this.latlong);
-    //   this.marker_circle.setLatLng(this.latlong);
-    //   this.marker_circle.setRadius(this.accuracy);
-    //   if (this.focus_on_marker)
-    //     this.map.setView(this.latlong);
-    // }), ((error) => {
-    //   //this.checkGPSPermission();
-    //   alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
-    // }), { enableHighAccuracy: true });
+    navigator.geolocation.watchPosition((async (position) => {
+      this.enable_device_orientation();
+      this.latlong = [position.coords.latitude, position.coords.longitude];
+      this.accuracy = position.coords.accuracy;
+      this.marker_position.setLatLng(this.latlong);
+      this.marker_circle.setLatLng(this.latlong);
+      this.marker_circle.setRadius(this.accuracy);
+      if (this.focus_on_marker)
+        this.map.setView(this.latlong);
+      if (this.dataService.getCheckboxnear_street()) {
+        await this.check_near_street();
+      }
+    }), ((error) => {
+      alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
+    }), { enableHighAccuracy: true });
   }
   getPosition() {
     this.watch_Position();
@@ -743,53 +628,34 @@ export class MappaPage {
       this.map.setView(this.latlong, this.map.getZoom());
     this.focus_on_marker = !this.focus_on_marker;
   }
-  print_time() {
-    console.log(this.log_time);
-  }
-  log_time = []
-  last_latlong = [0, 0];
+
   reverse_coords() {
-    var ok = false;
     this.interval_reverseCoords = setInterval(async () => {
-      if (ok)
-        this.log_time.push(performance.now() - this.time_start);
-      ok = false;
-      this.time_start = performance.now();
       if (this.latlong[0] != this.last_latlong[0] || this.latlong[1] != this.last_latlong[1])
         fetch('https://nominatim.openstreetmap.org/reverse?email=francesco.villi@stud.unifi.it&format=json&lat=' + this.latlong[0] + '&lon=' + this.latlong[1] + '&extratags=1&zoom=17')
           .then((response) => response.json())
           .then((json) => {
-            ok = true;
             this.last_latlong = this.latlong;
-            console.log(json)
             if (json.extratags.description != undefined) {
               var tags = json.extratags.description.split(';');
               if (tags.length > 10) {
-                //var new_idee = tags[1].split(':')[1];
-                //if (new_idee != this.ide_corsia) 
-                {
-                  //this.ide_corsia = new_idee;
-                  if (this.last_show_alert != null && this.last_show_alert.address == json.address.road && !this.last_show_alert.isShown) {
-                    this.last_show_alert.isShown = true;
-                    //console.log('alert shown: ' + this.last_show_alert.isShown)
-                    if (this.dataService.getToggleAlertVisivo())
-                      this.custom_alert_page.show_alert();
-                    this.custom_alert_page.sayAlert(this.last_show_alert.address)
-                    console.log('Sei sulla corsia riservata di ' + this.last_show_alert.address)
-                    this.notifica_page.create_notifica(json.address.road, tags[1].split(':')[1].split('0')[0]);
-                  }
-                  else
-                    this.check_street(tags, json.address.road);
+                if (this.last_show_alert != null && this.last_show_alert.address == json.address.road && !this.last_show_alert.isShown) {
+                  this.last_show_alert.isShown = true;
+                  if (this.dataService.getToggleAlertVisivo())
+                    this.custom_alert_page.show_alert();
+                  this.custom_alert_page.sayAlert(this.last_show_alert.address)
+                  console.log('Sei sulla corsia riservata di ' + this.last_show_alert.address)
+                  this.notifica_page.create_notifica(json.address.road, tags[1].split(':')[1].split('0')[0]);
                 }
+                else
+                  this.check_street(tags, json.address.road);
               }
             }
           }).catch(error => { console.log(error); });
-    }, 2500)
+    }, 2850)
   }
-  time_start;
-  time_end;
+
   check_street(tags, road) {
-    //console.log(road)
     var authoriz_user = this.dataService.getListAuthorizzation();
     var is_authorized = false;
     for (var i = 4; i < 15 && !is_authorized; i++) {
@@ -802,26 +668,17 @@ export class MappaPage {
     }
     if (!is_authorized && (this.last_show_alert == null || this.last_show_alert.address != road)) {
       this.last_show_alert = { address: road, isShown: false };
-      this.time_start = performance.now();
-      //if (this.dataService.getToggleAlertVisivo())
+
     }
   }
+
   //Ruota marker_position in base a dove punta il telefono
   enable_device_orientation() {
     this.deviceOrientation.watchHeading().subscribe(
       (data: DeviceOrientationCompassHeading) => {
-        //console.log(data.trueHeading);
         this.degrees = data.trueHeading;
         this.marker_position.setRotationAngle(this.degrees);
-        //alert(data);
       }
-    ,(e)=>alert(e));
-  }
-  send_notifica() {
-    this.notifica_page.create_notifica("Via", "B")
-  }
-  show_alert() {
-    //this.nativeAudio.play('notification_sound');
-    this.custom_alert_page.show_alert();
+      , (e) => alert(e));
   }
 }

@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-//import { TextToSpeech } from '@ionic-native/text-to-speech/ngx';
 
 @Injectable({
   providedIn: 'root'
@@ -18,16 +17,15 @@ export class DataService {
     { id: 'deroga', val: 'Deroga', isChecked: false },
     { id: 'soccorso', val: 'Soccorso', isChecked: false }
   ];
+  
   private display_info_autorizz = ['block', 'block', 'block', 'block', 'block']; //0->A 1->B 2->C1 3->C6 4->C7
   private checkbox_nearstreet =  true ;
-  private checkbox_alertOnCorsia = false ;
-  private toggle_alertVisivo = false;
+  private checkbox_alertOnCorsia = true ;
+  private toggle_alertVisivo = true;
   private selected_form_alert;
   private lista_filtro = JSON.parse(JSON.stringify(this.list_authorization));
   private radius_marker_circle = 50;
-  
   constructor() {
-    console.log('costruttore service')
     var app = JSON.parse(window.localStorage.getItem('checkbox_nearstreet'));
     if (app != null)
       this.checkbox_nearstreet = app;
@@ -137,14 +135,12 @@ export class DataService {
         }
       }
     }
-    //console.log(selected_data)
     return selected_data;
   }
   createLengendHTMLFromColorsSelected(colors = [{ corsia: '', color: { val: '', coding: '' }, isChecked: true }]) {
     var innerHTML = '';
     for (var i = 0; i < colors.length; i++) {
       if (colors[i].isChecked) {
-        // console.log(colors[i])
         innerHTML +=
           '<div class="row"> <i class ="color" style="background:' + colors[i].color.coding + '"></i> ' + '<p id="testo">' +
           'Corsia ' + colors[i].corsia + ' </p></div>';
