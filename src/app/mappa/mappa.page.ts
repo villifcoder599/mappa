@@ -472,7 +472,9 @@ export class MappaPage {
   askToTurnOnGPS() {
     this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(
       () => {
-
+        this.marker_position.addTo(this.map);
+        this.marker_circle.addTo(this.map);
+        this.getPosition();
       },
       error => alert('ask to turn on gps')
     );
@@ -586,9 +588,9 @@ export class MappaPage {
     });
   }
   showMap() {
-    this.marker_circle.addTo(this.map);
+  //  this.marker_circle.addTo(this.map);
     this.marker_circle_closest_street.addTo(this.map)
-    this.marker_position.addTo(this.map);
+   // this.marker_position.addTo(this.map);
   }
   async fake_gps() {
     this.marker_position.setLatLng(this.latlong);
@@ -596,28 +598,26 @@ export class MappaPage {
     this.marker_circle.setRadius(this.accuracy);
     if (this.focus_on_marker)
       this.map.setView(this.latlong);
-
     if (this.dataService.getCheckboxnear_street()) {
       await this.check_near_street();
     }
   }
 
   watch_Position() {
-    // navigator.geolocation.watchPosition((async (position) => {
-    //   this.enable_device_orientation();
-    //   this.latlong = [position.coords.latitude, position.coords.longitude];
-    //   this.accuracy = position.coords.accuracy;
-    //   this.marker_position.setLatLng(this.latlong);
-    //   this.marker_circle.setLatLng(this.latlong);
-    //   this.marker_circle.setRadius(this.accuracy);
-    //   if (this.focus_on_marker)
-    //     this.map.setView(this.latlong);
-    //   if (this.dataService.getCheckboxnear_street()) {
-    //     await this.check_near_street();
-    //   }
-    // }), ((error) => {
-    //   alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
-    // }), { enableHighAccuracy: true });
+    navigator.geolocation.watchPosition((async (position) => {
+      this.latlong = [position.coords.latitude, position.coords.longitude];
+      this.accuracy = position.coords.accuracy;
+      this.marker_position.setLatLng(this.latlong);
+      this.marker_circle.setLatLng(this.latlong);
+      this.marker_circle.setRadius(this.accuracy);
+      if (this.focus_on_marker)
+        this.map.setView(this.latlong);
+      if (this.dataService.getCheckboxnear_street()) {
+        await this.check_near_street();
+      }
+    }), ((error) => {
+      alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
+    }), { enableHighAccuracy: true });
   }
   getPosition() {
     this.watch_Position();
@@ -677,6 +677,6 @@ export class MappaPage {
         this.degrees = data.trueHeading;
         this.marker_position.setRotationAngle(this.degrees);
       }
-      , (e) => alert(e));
+      , () => alert("error deviceOrientation"));
   }
 }
