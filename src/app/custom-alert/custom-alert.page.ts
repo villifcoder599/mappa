@@ -163,8 +163,8 @@ export class CustomAlertPage {
     }
   }
   alert_onAddAlertVisivo() {
-    this.dataService.setToggleAlertVisivo(this.toggle_alertVisivo);
-    if (this.toggle_alertVisivo) {
+    this.dataService.setToggleAlertVisivo(!this.toggle_alertVisivo);
+    if (!this.toggle_alertVisivo) {
       this.createTextAlertCheckbox('Oltre all\'avviso acustico comparirà sullo schermo un alert per 3 secondi.\n Sotto puoi scegliere il modello di avviso e cliccando verra mostrata un\'anteprima');
       this.radioGroupChange(this.dataService.getSelectedFormAlert(), false);
     }

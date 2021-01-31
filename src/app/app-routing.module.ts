@@ -43,7 +43,7 @@ export class AppRoutingModule {
   constructor(private platform: Platform, private router: Router) {
     this.platform.ready().then(() => {
       var tutorial = JSON.parse(window.localStorage.getItem('tutorial'));
-      if ((tutorial)) {
+      if ((false)) {
         this.router.navigateByUrl('/tabs/mappa');
       }
       else

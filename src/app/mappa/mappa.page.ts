@@ -472,9 +472,7 @@ export class MappaPage {
   askToTurnOnGPS() {
     this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(
       () => {
-        // this.marker_position.addTo(this.map);
-        // this.marker_circle.addTo(this.map);
-        // this.getPosition();
+
       },
       error => alert('ask to turn on gps')
     );
