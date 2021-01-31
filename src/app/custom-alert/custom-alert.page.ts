@@ -182,6 +182,7 @@ export class CustomAlertPage {
   event_checkboxBackground(save) {
     if (save) {
       window.localStorage.setItem('checkbox_background', JSON.stringify(!this.checkbox_background));
+      if(!this.checkbox_background)
       this.createTextAlertCheckbox('Ora riceverai gli alert anche quando l\'app è in background');
     }
     if (!this.checkbox_background || !save) {

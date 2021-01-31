@@ -42,7 +42,7 @@
         </ion-item>
         <ion-item lines="none" class="card-item" [@visibilityChanged]="!checkbox_alertOnCorsia">
           <ion-label>Aggiungi alert visivo</ion-label>
-          <ion-toggle [(ngModel)]="toggle_alertVisivo" (ionChange)="alert_onAddAlertVisivo()"></ion-toggle>
+          <ion-toggle [(ngModel)]="toggle_alertVisivo" (click)="alert_onAddAlertVisivo()"></ion-toggle>
         </ion-item>
         <ion-item class="card-item" lines="none" [@addAlertVisivoChanged]="toggle_alertVisivo && checkbox_alertOnCorsia">
           <ion-list lines="none" style="width: 100%;">

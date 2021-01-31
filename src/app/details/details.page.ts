@@ -14,7 +14,7 @@ export class DetailsPage {
     this.load_data();
   }
   save_data() {
-    //window.localStorage.removeItem('colors_selected');
+    window.localStorage.removeItem('colors_selected');
     window.localStorage.setItem('autoriz_user', JSON.stringify(this.autoriz_user));
     this.dataService.setListAuthorizzation(this.autoriz_user);
   }

@@ -104,7 +104,7 @@ export class MappaPage {
   json_file = [];
   last_latlong = [0, 0];
   last_show_alert = null;
- /*ionic cordova run android --prod */
+  /*ionic cordova run android --prod */
   constructor(private dataService: DataService, private gestureCtrl: GestureController,
     private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage,
     private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage,
@@ -472,9 +472,9 @@ export class MappaPage {
   askToTurnOnGPS() {
     this.locationAccuracy.request(this.locationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(
       () => {
-        this.marker_position.addTo(this.map);
-        this.marker_circle.addTo(this.map);
-        this.getPosition();
+        // this.marker_position.addTo(this.map);
+        // this.marker_circle.addTo(this.map);
+        // this.getPosition();
       },
       error => alert('ask to turn on gps')
     );
@@ -603,22 +603,23 @@ export class MappaPage {
       await this.check_near_street();
     }
   }
+
   watch_Position() {
-    navigator.geolocation.watchPosition((async (position) => {
-      this.enable_device_orientation();
-      this.latlong = [position.coords.latitude, position.coords.longitude];
-      this.accuracy = position.coords.accuracy;
-      this.marker_position.setLatLng(this.latlong);
-      this.marker_circle.setLatLng(this.latlong);
-      this.marker_circle.setRadius(this.accuracy);
-      if (this.focus_on_marker)
-        this.map.setView(this.latlong);
-      if (this.dataService.getCheckboxnear_street()) {
-        await this.check_near_street();
-      }
-    }), ((error) => {
-      alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
-    }), { enableHighAccuracy: true });
+    // navigator.geolocation.watchPosition((async (position) => {
+    //   this.enable_device_orientation();
+    //   this.latlong = [position.coords.latitude, position.coords.longitude];
+    //   this.accuracy = position.coords.accuracy;
+    //   this.marker_position.setLatLng(this.latlong);
+    //   this.marker_circle.setLatLng(this.latlong);
+    //   this.marker_circle.setRadius(this.accuracy);
+    //   if (this.focus_on_marker)
+    //     this.map.setView(this.latlong);
+    //   if (this.dataService.getCheckboxnear_street()) {
+    //     await this.check_near_street();
+    //   }
+    // }), ((error) => {
+    //   alert('Alert_code: ' + error.code + '\n' + 'message: ' + error.message + '\n');
+    // }), { enableHighAccuracy: true });
   }
   getPosition() {
     this.watch_Position();
