@@ -104,8 +104,7 @@ export class MappaPage {
   json_file = [];
   last_latlong = [0, 0];
   last_show_alert = null;
-
-
+ /*ionic cordova run android --prod */
   constructor(private dataService: DataService, private gestureCtrl: GestureController,
     private androidPermissions: AndroidPermissions, private detailsPage: DetailsPage, private tabsPage: TabsPage,
     private router: Router, private custom_alert_page: CustomAlertPage, private notifica_page: NotificaPage,
